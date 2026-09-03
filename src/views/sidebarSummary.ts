@@ -20,7 +20,7 @@ export function renderSidebarSummary(phieu: PhieuResp): HTMLElement {
   const btnChiTiet = h("button", { class: "btn-secondary", type: "button" }, "Xem chi tiết điểm");
   btnChiTiet.addEventListener("click", () => moChiTietDiem(phieu, lane));
 
-  return h("aside", { class: "card sidebar-card kpi-sidebar" },
+  return h("aside", { class: "card sidebar-card" },
     h("p", { class: "sidebar-title" }, "Tổng điểm KPI tạm tính"),
     h("div", { class: "sidebar-score" },
       t.kpiCuoi == null ? "Chưa đủ điểm" : String(t.kpiCuoi),

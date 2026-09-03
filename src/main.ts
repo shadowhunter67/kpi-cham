@@ -123,7 +123,7 @@ async function chonNguoi(n: Nguoi | null) {
           renderSummary(phieu),
           scoreEl,
         ),
-        h("div", {},
+        h("div", { class: "kpi-sidebar" },
           renderSidebarSummary(phieu),
           renderTuChamCard(phieu),
         ),
