@@ -85,7 +85,7 @@ async function chonNguoi(n: Nguoi | null) {
       h("div", { class: "card" },
         h("div", { class: "phieu-head" },
           h("h2", {}, `${phieu.hoTen} — ${phieu.chucDanh}`),
-          h("span", { class: "phieu-ky" }, `Kỳ ${phieu.ky} · Tổ ${phieu.to}`),
+          h("span", { class: "phieu-ky" }, `Kỳ ${phieu.ky} · ${phieu.to}`),
           phieu.trangThai && h("span", { class: `badge tt-${phieu.trangThai === "đã chốt" ? "chot" : "dexuat"}` }, phieu.trangThai),
         ),
         renderSummary(phieu),

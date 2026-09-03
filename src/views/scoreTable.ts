@@ -5,6 +5,12 @@ import type { DiemItem, DongPhieu, PhieuResp } from "../types";
 
 type Mode = "to" | "hoiDong" | "hieuTruong" | "xem";
 
+/** Bỏ tiền tố mã lặp trong nội dung ("HT-20 — Thực hiện…" → "Thực hiện…"). */
+function boNhan(ma: string, noiDung: string): string {
+  const re = new RegExp(`^\\s*${ma.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[—–-]\\s*`, "i");
+  return noiDung.replace(re, "").trim() || noiDung;
+}
+
 function modeCua(phieu: PhieuResp): Mode {
   if (phieu.vaiTro.hoiDong === "hiệu trưởng") return "hieuTruong";
   if (phieu.vaiTro.hoiDong === "thư ký") return "hoiDong";
@@ -64,7 +70,7 @@ export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLEle
         h("span", { class: "row-ma" }, r.ma),
         h("span", { class: "row-max" }, `tối đa ${r.diemToiDa}đ`),
       ),
-      h("div", { class: "row-noidung" }, r.noiDung),
+      h("div", { class: "row-noidung" }, boNhan(r.ma, r.noiDung)),
       h("div", { class: "row-refs" }, ...refs),
     );
 
