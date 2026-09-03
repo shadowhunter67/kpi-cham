@@ -118,7 +118,7 @@ export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLEle
         : h("p", { class: "muc-note warn" }, `Phiếu ${lane === "hoiDong" ? "Hội đồng" : "Tổ"} đã chốt.`);
     wrap.append(...kids(
       note,
-      ...cards,
+      h("div", { class: "rows-grid" }, ...cards),
       phieu.nhanXet.to && h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét Tổ: "), phieu.nhanXet.to),
       phieu.nhanXet.hoiDong && h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét Hội đồng: "), phieu.nhanXet.hoiDong),
     ));
@@ -203,7 +203,7 @@ export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLEle
   });
 
   wrap.append(...kids(
-    ...cards,
+    h("div", { class: "rows-grid" }, ...cards),
     h("label", { class: "nx-field" }, h("span", {}, nxLabel), nxInput),
     h("div", { class: "actions" }, btnLuu, btnChot),
     ketQua,
