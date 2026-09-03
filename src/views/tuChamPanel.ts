@@ -31,13 +31,13 @@ export function renderTuChamCard(phieu: PhieuResp): HTMLElement {
         tc.thoiGianNop && h("p", { class: "tc-meta" }, "Nộp Form: ", h("b", {}, tc.thoiGianNop)),
         tc.nhiemVuKiemNhiem &&
           h("p", { class: "tc-meta" }, "Kiêm nhiệm: ", h("b", {}, tc.nhiemVuKiemNhiem)),
-        h("table", { class: "tc-table" },
+        h("table", { class: "detail-table" },
           h("thead", {}, h("tr", {}, h("th", {}, "Mã"), h("th", {}, "Nội dung"), h("th", {}, "Điểm"))),
           h("tbody", {}, ...phieu.rows.map((r) =>
             h("tr", {},
-              h("td", { class: "tc-ma" }, r.ma),
+              h("td", { class: "detail-ma" }, r.ma),
               h("td", {}, boNhan(r.ma, r.noiDung)),
-              h("td", { class: "tc-diem" }, fmt(r.diemTuCham)),
+              h("td", { class: "detail-diem" }, fmt(r.diemTuCham)),
             ),
           )),
         ),

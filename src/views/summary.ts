@@ -2,28 +2,30 @@ import { h, fmt } from "../dom";
 import { tongHop } from "../scoring";
 import type { PhieuResp } from "../types";
 
-/** Dải tóm tắt điểm 3 lớp + KPI tạm tính. Chỉ đọc. */
+/** ScoreSummary — 4 ô tổng quan điểm. Chưa có điểm nào ghi rõ chữ "Chưa chấm". */
 export function renderSummary(phieu: PhieuResp): HTMLElement {
   const t = tongHop(phieu);
-  const ttTo = phieu.trangThai.to === "đã chốt" ? "đã chốt" : "chưa chốt";
-  const ttHd = phieu.trangThai.hoiDong === "đã chốt" ? "đã chốt" : "chưa chốt";
 
-  const o = (label: string, value: string, note?: string) =>
+  const o = (label: string, value: string, note?: string, muted?: boolean) =>
     h("div", { class: "sum-cell" },
       h("span", { class: "sum-label" }, label),
-      h("span", { class: "sum-value" }, value),
+      h("span", { class: `sum-value${muted ? " muted" : ""}` }, value),
       note && h("span", { class: "sum-note" }, note),
     );
 
+  const oLop = (label: string, gia: number, chua: boolean, thieu: boolean, ttChot: "" | "đã chốt") => {
+    if (chua) return o(label, "Chưa chấm", undefined, true);
+    const note = thieu ? "chưa đủ điểm" : (ttChot === "đã chốt" ? "đã chốt" : "chưa chốt");
+    return o(label, `${fmt(gia)} / 100`, note, thieu);
+  };
+
   return h("div", { class: "summary" },
-    o("Tự chấm (20%)", fmt(t.tuCham) + " / 100"),
-    o("Tổ chấm (30%)", fmt(t.toCham) + " / 100", t.toThieu ? "chưa đủ điểm" : ttTo),
-    o("Hội đồng (50%)", fmt(t.hoiDong) + " / 100", t.hoiDongThieu ? "chưa đủ điểm" : ttHd),
-    o(
-      "KPI tạm tính",
-      t.kpiCuoi == null ? "—" : fmt(t.kpiCuoi),
-      t.xepLoai ?? "cần đủ điểm 3 lớp",
-    ),
+    o("Tự chấm (20%)", `${fmt(t.tuCham)} / 100`),
+    oLop("Tổ chấm (30%)", t.toCham, t.toChua, t.toThieu, phieu.trangThai.to),
+    oLop("Hội đồng (50%)", t.hoiDong, t.hoiDongChua, t.hoiDongThieu, phieu.trangThai.hoiDong),
+    t.kpiCuoi == null
+      ? o("KPI tạm tính", "Chưa đủ điểm", "cần đủ điểm cả 3 lớp", true)
+      : o("KPI tạm tính", fmt(t.kpiCuoi), t.xepLoai ?? undefined),
     h("p", { class: "summary-disclaimer" },
       "Xếp loại cuối còn phụ thuộc điều kiện Nghị định 233/2026/NĐ-CP — con số ở đây chỉ để tham khảo."),
   );

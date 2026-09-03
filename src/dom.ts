@@ -48,3 +48,33 @@ export function fmt(n: number | null | undefined): string {
   if (n == null || Number.isNaN(n)) return "—";
   return String(Math.round(n * 100) / 100);
 }
+
+/**
+ * Modal đơn giản, 1 tầng scroll (nội dung dài thì tự cuộn theo backdrop,
+ * không tạo scroll lồng trong scroll). Đóng bằng nút X, bấm ra ngoài,
+ * hoặc phím Esc.
+ */
+export function openModal(title: string, body: Node, opts?: { wide?: boolean }): { close: () => void } {
+  const backdrop = h("div", { class: "modal-backdrop" },
+    h("div", { class: "modal-box", style: opts?.wide ? "width:min(820px,100%)" : "" },
+      h("div", { class: "modal-head" },
+        h("h3", {}, title),
+        h("button", { class: "modal-close", type: "button", "aria-label": "Đóng" }, "✕"),
+      ),
+      h("div", { class: "modal-body" }, body),
+    ),
+  );
+
+  const close = () => {
+    backdrop.remove();
+    document.removeEventListener("keydown", onKey);
+  };
+  const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+
+  backdrop.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
+  backdrop.querySelector(".modal-close")!.addEventListener("click", close);
+  document.addEventListener("keydown", onKey);
+
+  document.body.appendChild(backdrop);
+  return { close };
+}
