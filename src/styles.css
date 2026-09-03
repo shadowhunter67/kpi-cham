@@ -90,7 +90,7 @@ textarea { resize: vertical; min-height: 90px; }
 .sum-label { display: block; font-size: 0.9rem; color: var(--muted); font-weight: 600; }
 .sum-value { display: block; font-size: 1.3rem; font-weight: 800; margin-top: 2px; }
 .sum-note { display: block; font-size: 0.85rem; color: var(--muted); margin-top: 2px; }
-.summary-disclaimer { font-size: 0.9rem; color: var(--muted); margin: 10px 0 0; }
+.summary-disclaimer { grid-column: 1 / -1; font-size: 0.9rem; color: var(--muted); margin: 10px 0 0; }
 
 /* dòng chấm — 2 cột trên màn rộng để đỡ cuộn và đỡ trống 2 bên */
 .score-table { margin-top: 16px; }
