@@ -30,6 +30,10 @@
 * { box-sizing: border-box; }
 
 html { color-scheme: light; background: #fff; }
+/* Tắt scroll anchoring — nếu không, trình duyệt tự bù cuộn khi
+ * body.has-sticky-bar thêm padding-top lúc đang cuộn, triệt tiêu
+ * khoảng chừa cho sticky-eval-bar. */
+html, body { overflow-anchor: none; }
 
 body {
   margin: 0;
