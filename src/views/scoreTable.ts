@@ -3,7 +3,7 @@ import { api, ApiError } from "../api";
 import { promptReauth } from "../auth";
 import type { DiemItem, DongPhieu, PhieuResp } from "../types";
 
-type Mode = "to" | "hoiDong" | "hieuTruong" | "xem";
+type Lane = "to" | "hoiDong" | null;
 
 /** Bỏ tiền tố mã lặp trong nội dung ("HT-20 — Thực hiện…" → "Thực hiện…"). */
 function boNhan(ma: string, noiDung: string): string {
@@ -11,58 +11,44 @@ function boNhan(ma: string, noiDung: string): string {
   return noiDung.replace(re, "").trim() || noiDung;
 }
 
-function modeCua(phieu: PhieuResp): Mode {
-  if (phieu.vaiTro.hoiDong === "hiệu trưởng") return "hieuTruong";
-  if (phieu.vaiTro.hoiDong === "thư ký") return "hoiDong";
-  if (phieu.vaiTro.to) return "to";
-  return "xem";
-}
-
-/** Lớp điểm mà người dùng đang chấm phải tham chiếu (để cảnh báo lệch lớn). */
-function diemLopTruoc(mode: Mode, r: DongPhieu): number | null {
-  if (mode === "to") return r.diemTuCham;
-  if (mode === "hoiDong") return r.to.trungBinh;
-  if (mode === "hieuTruong") return r.hoiDong.deXuat;
+function laneCua(phieu: PhieuResp): Lane {
+  if (phieu.quyen.laHieuTruong) return "hoiDong";
+  if (phieu.quyen.laNguoiChamTo) return "to";
   return null;
 }
 
-function giaTriDangCo(mode: Mode, phieu: PhieuResp, r: DongPhieu): number | null {
-  if (mode === "to") {
-    return phieu.slotBanCham === 2 ? r.to.diem2 : r.to.diem1;
-  }
-  if (mode === "hoiDong") return r.hoiDong.deXuat;
-  if (mode === "hieuTruong") return r.hoiDong.hieuTruong; // chỉ điền khi ghi đè
-  return null;
+function diemHienCo(lane: Lane, r: DongPhieu): number | null {
+  return lane === "hoiDong" ? r.diemHoiDong : r.diemTo;
+}
+
+function diemLopTruoc(lane: Lane, r: DongPhieu): number | null {
+  return lane === "hoiDong" ? r.diemTo : r.diemTuCham;
 }
 
 export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLElement {
-  const mode = modeCua(phieu);
-  const daChot = phieu.trangThai === "đã chốt";
-  const chiDoc = mode === "xem" || (mode === "hoiDong" && daChot);
+  const lane = laneCua(phieu);
+  const daChot = lane === "hoiDong"
+    ? phieu.trangThai.hoiDong === "đã chốt"
+    : lane === "to"
+      ? phieu.trangThai.to === "đã chốt"
+      : false;
+  const chiDoc = lane == null || daChot;
 
   const inputs = new Map<string, HTMLInputElement>();
   const cards: HTMLElement[] = [];
 
   for (const r of phieu.rows) {
-    const truoc = diemLopTruoc(mode, r);
+    const truoc = diemLopTruoc(lane, r);
     const nguong = r.diemToiDa * 0.25;
 
     const refs: HTMLElement[] = [
       h("span", {}, "Tự chấm: ", h("b", {}, fmt(r.diemTuCham))),
     ];
-    if (mode === "hoiDong" || mode === "hieuTruong" || mode === "xem") {
-      refs.push(h("span", {}, "Tổ (TB): ", h("b", {}, fmt(r.to.trungBinh)),
-        ` (${fmt(r.to.diem1)} / ${fmt(r.to.diem2)})`));
+    if (lane === "hoiDong" || lane == null) {
+      refs.push(h("span", {}, "Tổ: ", h("b", {}, fmt(r.diemTo))));
     }
-    if (mode === "to") {
-      const kia = phieu.slotBanCham === 2 ? r.to.diem1 : r.to.diem2;
-      refs.push(h("span", {}, "Người chấm kia: ", h("b", {}, fmt(kia))));
-    }
-    if (mode === "hieuTruong" || mode === "xem") {
-      refs.push(h("span", {}, "Hội đồng: ", h("b", {}, fmt(r.hoiDong.deXuat))));
-    }
-    if (mode === "xem") {
-      refs.push(h("span", {}, "Chốt: ", h("b", {}, fmt(r.hoiDong.chot))));
+    if (lane == null) {
+      refs.push(h("span", {}, "Hội đồng: ", h("b", {}, fmt(r.diemHoiDong))));
     }
 
     const card = h("div", { class: "row-card" },
@@ -81,8 +67,7 @@ export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLEle
         max: String(r.diemToiDa),
         step: "0.5",
         inputmode: "decimal",
-        value: giaTriDangCo(mode, phieu, r) ?? "",
-        placeholder: mode === "hieuTruong" ? "(giữ nguyên hội đồng)" : "",
+        value: diemHienCo(lane, r) ?? "",
       }) as HTMLInputElement;
 
       const warn = h("span", { class: "row-warn-msg" });
@@ -107,10 +92,7 @@ export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLEle
 
       inputs.set(r.ma, input);
       card.append(
-        h("label", { class: "row-input" },
-          h("span", {}, mode === "hieuTruong" ? "Ghi đè" : "Bạn chấm"),
-          input,
-        ),
+        h("label", { class: "row-input" }, h("span", {}, "Bạn chấm"), input),
         warn,
       );
     }
@@ -118,50 +100,49 @@ export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLEle
     cards.push(card);
   }
 
-  // ---- vùng nhận xét ----
-  const nxLabel =
-    mode === "hieuTruong" ? "Nhận xét của Hiệu trưởng"
-      : mode === "hoiDong" ? "Nhận xét chung của Hội đồng"
-        : mode === "to" ? "Nhận xét chung của Tổ"
-          : "Nhận xét";
-  const nxValue =
-    mode === "hieuTruong" ? phieu.nhanXet.hieuTruong
-      : mode === "hoiDong" ? phieu.nhanXet.hoiDong
-        : phieu.nhanXet.to;
-
+  const nxLabel = lane === "hoiDong" ? "Nhận xét của Hội đồng" : "Nhận xét chung của Tổ";
+  const nxValue = lane === "hoiDong" ? phieu.nhanXet.hoiDong : phieu.nhanXet.to;
   const nxInput = h("textarea", { rows: "3", value: nxValue }) as HTMLTextAreaElement;
 
-  const lyDoInput = h("textarea", {
-    rows: "2", value: phieu.nhanXet.lyDo,
-    placeholder: "Bắt buộc nếu có ghi đè điểm so với hội đồng",
-  }) as HTMLTextAreaElement;
-
   const ketQua = h("div", { class: "ket-qua" });
-
-  // ---- nút lưu ----
   const wrap = h("div", { class: "score-table" });
 
+  // ---- chế độ chỉ đọc ----
   if (chiDoc) {
-    const lyDo = phieu.nhanXet.lyDo
-      ? h("div", { class: "readonly-block" }, h("b", {}, "Lý do điều chỉnh: "), phieu.nhanXet.lyDo)
-      : null;
     wrap.append(...kids(
-      mode === "xem"
-        ? h("p", { class: "muc-note" }, "Chế độ chỉ xem.")
-        : h("p", { class: "muc-note warn" }, "Phiếu đã được Hiệu trưởng chốt — nhờ Hiệu trưởng bấm “Mở lại” nếu cần sửa."),
+      lane == null
+        ? h("p", { class: "muc-note" }, "Bạn không được phân công chấm phiếu này — chế độ chỉ xem.")
+        : h("p", { class: "muc-note warn" }, `Phiếu ${lane === "hoiDong" ? "Hội đồng" : "Tổ"} đã chốt.`),
       ...cards,
-      phieu.nhanXet.hoiDong && h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét hội đồng: "), phieu.nhanXet.hoiDong),
-      phieu.nhanXet.hieuTruong && h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét hiệu trưởng: "), phieu.nhanXet.hieuTruong),
-      lyDo,
+      phieu.nhanXet.to && h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét Tổ: "), phieu.nhanXet.to),
+      phieu.nhanXet.hoiDong && h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét Hội đồng: "), phieu.nhanXet.hoiDong),
     ));
+
+    if (lane && daChot) {
+      const btnMo = h("button", { class: "btn-ghost", type: "button" }, "Mở lại phiếu") as HTMLButtonElement;
+      btnMo.addEventListener("click", () => {
+        btnMo.disabled = true;
+        ketQua.className = "ket-qua";
+        ketQua.textContent = "Đang mở lại…";
+        const fn = lane === "hoiDong" ? api.moLaiHoiDong : api.moLaiTo;
+        fn({ hoTen: phieu.hoTen, chucDanh: phieu.chucDanh, to: phieu.to })
+          .then(() => { ketQua.className = "ket-qua ok"; ketQua.textContent = "Đã mở lại."; setTimeout(onSaved, 500); })
+          .catch((err: unknown) => {
+            btnMo.disabled = false;
+            ketQua.className = "ket-qua loi";
+            ketQua.textContent = err instanceof ApiError ? err.message : String(err);
+          });
+      });
+      wrap.append(h("div", { class: "actions" }, btnMo), ketQua);
+    }
     return wrap;
   }
 
-  const thuThapDiem = (): DiemItem[] | null => {
+  // ---- chế độ nhập ----
+  const thuThap = (): DiemItem[] | null => {
     const out: DiemItem[] = [];
     for (const r of phieu.rows) {
-      const input = inputs.get(r.ma)!;
-      const raw = input.value.trim();
+      const raw = inputs.get(r.ma)!.value.trim();
       if (raw === "") continue;
       const v = Number(raw);
       if (!Number.isFinite(v) || v < 0 || v > r.diemToiDa) {
@@ -174,90 +155,52 @@ export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLEle
     return out;
   };
 
-  const chay = async (fn: () => Promise<unknown>, thanhCong: string) => {
+  const btnLuu = h("button", { class: "btn-ghost", type: "button" }, "Lưu (chưa chốt)") as HTMLButtonElement;
+  const btnChot = h("button", { class: "btn-primary", type: "button" }, "Chốt & khóa") as HTMLButtonElement;
+
+  const chay = (fn: () => Promise<unknown>, ok: string) => {
     btnLuu.disabled = true;
-    if (btnMoLai) btnMoLai.disabled = true;
+    btnChot.disabled = true;
     ketQua.className = "ket-qua";
     ketQua.textContent = "Đang lưu…";
-    try {
-      await fn();
-      ketQua.className = "ket-qua ok";
-      ketQua.textContent = thanhCong;
-      setTimeout(onSaved, 600);
-    } catch (err) {
-      const msg = err instanceof ApiError ? err.message : String(err);
-      ketQua.className = "ket-qua loi";
-      ketQua.textContent = msg;
-      if (err instanceof ApiError && err.canhBaoDangNhap) promptReauth();
-    } finally {
-      btnLuu.disabled = false;
-      if (btnMoLai) btnMoLai.disabled = false;
-    }
+    fn()
+      .then(() => { ketQua.className = "ket-qua ok"; ketQua.textContent = ok; setTimeout(onSaved, 600); })
+      .catch((err: unknown) => {
+        btnLuu.disabled = false;
+        btnChot.disabled = false;
+        const msg = err instanceof ApiError ? err.message : String(err);
+        ketQua.className = "ket-qua loi";
+        ketQua.textContent = msg;
+        if (err instanceof ApiError && err.canhBaoDangNhap) promptReauth();
+      });
   };
 
-  const btnLuu = h("button", { class: "btn-primary", type: "button" },
-    mode === "hieuTruong" ? "Chốt & khóa phiếu" : "Lưu điểm & nhận xét",
-  ) as HTMLButtonElement;
-
-  const btnMoLai =
-    mode === "hieuTruong" && daChot
-      ? (h("button", { class: "btn-ghost", type: "button" }, "Mở lại phiếu") as HTMLButtonElement)
-      : null;
+  const payload = () => {
+    const diem = thuThap();
+    if (!diem) return null;
+    return {
+      hoTen: phieu.hoTen, chucDanh: phieu.chucDanh, to: phieu.to,
+      diem, nhanXet: nxInput.value,
+    };
+  };
 
   btnLuu.addEventListener("click", () => {
-    const p = { hoTen: phieu.hoTen, chucDanh: phieu.chucDanh, to: phieu.to };
-
-    if (mode === "to") {
-      const diem = thuThapDiem();
-      if (!diem) return;
-      void chay(() => api.luuDiemTo({ ...p, diem, nhanXet: nxInput.value }), "Đã lưu điểm Tổ.");
-      return;
-    }
-
-    if (mode === "hoiDong") {
-      const diem = thuThapDiem();
-      if (!diem) return;
-      void chay(() => api.luuDiemHoiDong({ ...p, diem, nhanXet: nxInput.value }), "Đã lưu điểm Hội đồng (trạng thái: đề xuất).");
-      return;
-    }
-
-    // hieuTruong: chỉ gửi các mã ghi đè khác điểm đề xuất
-    const ghiDe: DiemItem[] = [];
-    for (const r of phieu.rows) {
-      const raw = inputs.get(r.ma)!.value.trim();
-      if (raw === "") continue;
-      const v = Number(raw);
-      if (!Number.isFinite(v) || v < 0 || v > r.diemToiDa) {
-        ketQua.className = "ket-qua loi";
-        ketQua.textContent = `Điểm mã ${r.ma} không hợp lệ.`;
-        return;
-      }
-      if (r.hoiDong.deXuat == null || v !== r.hoiDong.deXuat) ghiDe.push({ ma: r.ma, diem: v });
-    }
-    if (ghiDe.length && !lyDoInput.value.trim()) {
-      ketQua.className = "ket-qua loi";
-      ketQua.textContent = "Có ghi đè điểm — bắt buộc nhập Lý do điều chỉnh.";
-      lyDoInput.focus();
-      return;
-    }
-    void chay(
-      () => api.chotHieuTruong({ ...p, ghiDe, lyDo: lyDoInput.value, nhanXet: nxInput.value }),
-      "Đã chốt và khóa phiếu.",
-    );
+    const p = payload();
+    if (!p) return;
+    chay(() => (lane === "hoiDong" ? api.luuDiemHoiDong(p) : api.luuDiemTo(p)), "Đã lưu (chưa chốt).");
   });
 
-  btnMoLai?.addEventListener("click", () => {
-    void chay(
-      () => api.moLaiHieuTruong({ hoTen: phieu.hoTen, chucDanh: phieu.chucDanh, to: phieu.to }),
-      "Đã mở lại phiếu (trạng thái: đề xuất).",
-    );
+  btnChot.addEventListener("click", () => {
+    const p = payload();
+    if (!p) return;
+    if (!confirm("Chốt & khóa phiếu này? Sau khi chốt phải bấm “Mở lại” mới sửa được.")) return;
+    chay(() => (lane === "hoiDong" ? api.chotHoiDong(p) : api.chotTo(p)), "Đã chốt & khóa.");
   });
 
   wrap.append(...kids(
     ...cards,
     h("label", { class: "nx-field" }, h("span", {}, nxLabel), nxInput),
-    mode === "hieuTruong" && h("label", { class: "nx-field" }, h("span", {}, "Lý do điều chỉnh"), lyDoInput),
-    h("div", { class: "actions" }, btnLuu, btnMoLai),
+    h("div", { class: "actions" }, btnLuu, btnChot),
     ketQua,
   ));
 

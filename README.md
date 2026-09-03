@@ -11,15 +11,20 @@ Trang tĩnh (Vite + TypeScript thuần, không framework) cho **Tổ**, **Hội 
 
 ## Luồng chấm (quy chế Điều 6)
 
-| Lớp | Ai | Trọng số |
+| Lớp | Ai nhập | Trọng số |
 |---|---|---|
 | Tự chấm | Cá nhân (Google Form) | 20% |
-| Tổ chấm | 2 người/tổ, điểm = TB | 30% |
-| Hội đồng | Thư ký nhập 1 bộ điểm (hội đồng đã họp) | tạo số 50% |
-| Hiệu trưởng | Duyệt / ghi đè + lý do → chốt & khóa | quyết định số 50% |
+| Tổ chấm | **01 người = Tổ trưởng** (sau khi Tổ họp). Phiếu của Tổ trưởng → **Tổ phó** chấm | 30% |
+| Hội đồng | **01 người = Hiệu trưởng** (thay mặt hội đồng, sau khi họp) | 50% |
 
-Realtime, không có bước "gửi phiếu". Tổ vẫn sửa được sau khi Hiệu trưởng chốt
-(điểm 50% giữ khóa).
+- Tổ trưởng không tự chấm phiếu mình.
+- Mỗi lớp (Tổ / Hội đồng) có nút **Lưu** và **Chốt & khóa** riêng; chốt xong khóa lại, có **Mở lại**.
+- Realtime, không có bước "gửi phiếu". Tổ vẫn sửa được sau khi Hội đồng chốt (điểm 50% giữ khóa).
+
+## Vai trò (allowlist trong CẤU HÌNH HỆ THỐNG)
+
+- **Mục F "NGƯỜI CHẤM TỔ"**: `TỔ/BỘ PHẬN | EMAIL TỔ TRƯỞNG | EMAIL TỔ PHÓ`
+- **Mục G "HỘI ĐỒNG"**: `EMAIL HỘI ĐỒNG | VAI TRÒ` (vai trò: `hiệu trưởng` = chấm, `thành viên` = chỉ xem)
 
 ## Chạy local
 

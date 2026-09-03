@@ -42,24 +42,26 @@ async function post<T>(action: string, payload: Record<string, unknown> = {}): P
   return data as T;
 }
 
+type LuuPayload = {
+  hoTen: string;
+  chucDanh: string;
+  to: string;
+  diem: DiemItem[];
+  nhanXet: string;
+};
+type NguoiPayload = { hoTen: string; chucDanh: string; to: string };
+
 export const api = {
   khoiTao: () => post<KhoiTaoResp>("khoiTao"),
 
   layPhieu: (hoTen: string, chucDanh: string, to: string) =>
     post<PhieuResp>("layPhieu", { hoTen, chucDanh, to }),
 
-  luuDiemTo: (p: {
-    hoTen: string; chucDanh: string; to: string; diem: DiemItem[]; nhanXet: string;
-  }) => post<{ ok: true }>("luuDiemTo", p),
+  luuDiemTo: (p: LuuPayload) => post<{ ok: true }>("luuDiemTo", p),
+  chotTo: (p: LuuPayload) => post<{ ok: true }>("chotTo", p),
+  moLaiTo: (p: NguoiPayload) => post<{ ok: true }>("moLaiTo", p),
 
-  luuDiemHoiDong: (p: {
-    hoTen: string; chucDanh: string; to: string; diem: DiemItem[]; nhanXet: string;
-  }) => post<{ ok: true }>("luuDiemHoiDong", p),
-
-  chotHieuTruong: (p: {
-    hoTen: string; chucDanh: string; to: string; ghiDe: DiemItem[]; lyDo: string; nhanXet: string;
-  }) => post<{ ok: true }>("chotHieuTruong", p),
-
-  moLaiHieuTruong: (p: { hoTen: string; chucDanh: string; to: string }) =>
-    post<{ ok: true }>("moLaiHieuTruong", p),
+  luuDiemHoiDong: (p: LuuPayload) => post<{ ok: true }>("luuDiemHoiDong", p),
+  chotHoiDong: (p: LuuPayload) => post<{ ok: true }>("chotHoiDong", p),
+  moLaiHoiDong: (p: NguoiPayload) => post<{ ok: true }>("moLaiHoiDong", p),
 };

@@ -4,9 +4,9 @@ import type { PhieuResp } from "./types";
 export interface TongHop {
   tuCham: number;
   toCham: number | null;
-  toChamThieu: boolean;
+  toThieu: boolean;
   hoiDong: number | null;
-  hoiDongTamTinh: boolean; // true khi chưa chốt (dùng điểm đề xuất)
+  hoiDongThieu: boolean;
   kpiCuoi: number | null;
   xepLoai: string | null;
 }
@@ -26,35 +26,32 @@ export function tongHop(phieu: PhieuResp): TongHop {
 
   let toThieu = false;
   const toCham = rows.reduce((s, r) => {
-    if (r.to.trungBinh == null) toThieu = true;
-    return s + (r.to.trungBinh ?? 0);
+    if (r.diemTo == null) toThieu = true;
+    return s + (r.diemTo ?? 0);
   }, 0);
 
-  const daChot = phieu.trangThai === "đã chốt";
   let hdThieu = false;
   const hoiDong = rows.reduce((s, r) => {
-    const v = daChot ? r.hoiDong.chot : r.hoiDong.deXuat;
-    if (v == null) hdThieu = true;
-    return s + (v ?? 0);
+    if (r.diemHoiDong == null) hdThieu = true;
+    return s + (r.diemHoiDong ?? 0);
   }, 0);
 
-  const toOk = !toThieu ? toCham : null;
-  const hdOk = !hdThieu ? hoiDong : null;
+  const toOk = toThieu ? null : toCham;
+  const hdOk = hdThieu ? null : hoiDong;
 
   let kpiCuoi: number | null = null;
   if (toOk != null && hdOk != null) {
-    kpiCuoi =
-      Math.round(
-        (tuCham * TRONG_SO.tu + toOk * TRONG_SO.to + hdOk * TRONG_SO.hoiDong) * 100,
-      ) / 100;
+    kpiCuoi = Math.round(
+      (tuCham * TRONG_SO.tu + toOk * TRONG_SO.to + hdOk * TRONG_SO.hoiDong) * 100,
+    ) / 100;
   }
 
   return {
     tuCham: Math.round(tuCham * 100) / 100,
     toCham: toOk,
-    toChamThieu: toThieu,
+    toThieu,
     hoiDong: hdOk,
-    hoiDongTamTinh: !daChot,
+    hoiDongThieu: hdThieu,
     kpiCuoi,
     xepLoai: kpiCuoi == null ? null : xepLoai(kpiCuoi),
   };

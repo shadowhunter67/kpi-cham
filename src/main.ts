@@ -13,7 +13,7 @@ let dangChon: Nguoi | null = null;
 
 function moTaVaiTro(v: VaiTro): string {
   const phan: string[] = [];
-  if (v.to) phan.push(`Chấm Tổ "${v.to}" (người chấm ${v.slot})`);
+  if (v.to) phan.push(`Tổ "${v.to}" — Tổ ${v.toChucVu}`);
   if (v.hoiDong) phan.push(`Hội đồng — ${v.hoiDong}`);
   return phan.join(" · ") || "Chưa có vai trò";
 }
@@ -86,7 +86,10 @@ async function chonNguoi(n: Nguoi | null) {
         h("div", { class: "phieu-head" },
           h("h2", {}, `${phieu.hoTen} — ${phieu.chucDanh}`),
           h("span", { class: "phieu-ky" }, `Kỳ ${phieu.ky} · ${phieu.to}`),
-          phieu.trangThai && h("span", { class: `badge tt-${phieu.trangThai === "đã chốt" ? "chot" : "dexuat"}` }, phieu.trangThai),
+          h("span", { class: `badge tt-${phieu.trangThai.to === "đã chốt" ? "chot" : "chua"}` },
+            `Tổ: ${phieu.trangThai.to === "đã chốt" ? "đã chốt" : "chưa chốt"}`),
+          h("span", { class: `badge tt-${phieu.trangThai.hoiDong === "đã chốt" ? "chot" : "chua"}` },
+            `HĐ: ${phieu.trangThai.hoiDong === "đã chốt" ? "đã chốt" : "chưa chốt"}`),
         ),
         renderSummary(phieu),
         renderScoreTable(phieu, () => void chonNguoi(dangChon)),

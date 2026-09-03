@@ -1,8 +1,9 @@
-export type VaiTroHoiDong = "thư ký" | "hiệu trưởng" | "thành viên";
+export type VaiTroHoiDong = "hiệu trưởng" | "thành viên";
+export type ToChucVu = "trưởng" | "phó";
 
 export interface VaiTro {
   to: string | null;
-  slot: 1 | 2 | null;
+  toChucVu: ToChucVu | null;
   hoiDong: VaiTroHoiDong | null;
 }
 
@@ -19,28 +20,16 @@ export interface KhoiTaoResp {
   nguoiDuocCham: Nguoi[];
 }
 
-export interface DiemTo {
-  diem1: number | null;
-  diem2: number | null;
-  trungBinh: number | null;
-}
-
-export interface DiemHoiDong {
-  deXuat: number | null;
-  hieuTruong: number | null;
-  chot: number | null;
-}
-
 export interface DongPhieu {
   ma: string;
   noiDung: string;
   diemToiDa: number;
   diemTuCham: number | null;
-  to: DiemTo;
-  hoiDong: DiemHoiDong;
+  diemTo: number | null;
+  diemHoiDong: number | null;
 }
 
-export type TrangThai = "" | "đề xuất" | "đã chốt";
+export type TrangThai = "" | "đã chốt";
 
 export interface PhieuResp {
   hoTen: string;
@@ -48,15 +37,11 @@ export interface PhieuResp {
   to: string;
   ky: string;
   vaiTro: VaiTro;
-  slotBanCham: 1 | 2 | null;
-  trangThai: TrangThai;
+  quyen: { laNguoiChamTo: boolean; laHieuTruong: boolean };
+  canEdit: { to: boolean; hoiDong: boolean };
+  trangThai: { to: TrangThai; hoiDong: TrangThai };
   rows: DongPhieu[];
-  nhanXet: {
-    to: string;
-    hoiDong: string;
-    hieuTruong: string;
-    lyDo: string;
-  };
+  nhanXet: { to: string; hoiDong: string };
 }
 
 export interface DiemItem {

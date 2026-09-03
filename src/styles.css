@@ -87,7 +87,7 @@ textarea { resize: vertical; }
 .phieu-head h2 { margin: 0; font-size: 1.1rem; flex: 1 1 100%; }
 .phieu-ky { color: var(--muted); font-size: 0.88rem; }
 .badge { font-size: 0.78rem; padding: 2px 8px; border-radius: 999px; font-weight: 600; }
-.tt-dexuat { background: var(--warn-bg); color: var(--warn-ink); }
+.tt-chua { background: var(--warn-bg); color: var(--warn-ink); }
 .tt-chot { background: var(--ok-bg); color: var(--ok-ink); }
 
 /* summary */

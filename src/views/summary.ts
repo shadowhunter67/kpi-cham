@@ -5,6 +5,8 @@ import type { PhieuResp } from "../types";
 /** Dải tóm tắt điểm 3 lớp + KPI tạm tính. Chỉ đọc. */
 export function renderSummary(phieu: PhieuResp): HTMLElement {
   const t = tongHop(phieu);
+  const ttTo = phieu.trangThai.to === "đã chốt" ? "đã chốt" : "chưa chốt";
+  const ttHd = phieu.trangThai.hoiDong === "đã chốt" ? "đã chốt" : "chưa chốt";
 
   const o = (label: string, value: string, note?: string) =>
     h("div", { class: "sum-cell" },
@@ -15,12 +17,8 @@ export function renderSummary(phieu: PhieuResp): HTMLElement {
 
   return h("div", { class: "summary" },
     o("Tự chấm (20%)", fmt(t.tuCham) + " / 100"),
-    o("Tổ chấm (30%)", fmt(t.toCham) + " / 100", t.toChamThieu ? "chưa đủ 2 người" : undefined),
-    o(
-      "Hội đồng (50%)",
-      fmt(t.hoiDong) + " / 100",
-      t.hoiDong == null ? "chưa đủ điểm" : t.hoiDongTamTinh ? "đề xuất, chưa chốt" : "đã chốt",
-    ),
+    o("Tổ chấm (30%)", fmt(t.toCham) + " / 100", t.toThieu ? "chưa đủ điểm" : ttTo),
+    o("Hội đồng (50%)", fmt(t.hoiDong) + " / 100", t.hoiDongThieu ? "chưa đủ điểm" : ttHd),
     o(
       "KPI tạm tính",
       t.kpiCuoi == null ? "—" : fmt(t.kpiCuoi),
