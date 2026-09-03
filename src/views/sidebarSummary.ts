@@ -30,7 +30,7 @@ export function renderSidebarSummary(phieu: PhieuResp): HTMLElement {
         t.kpiCuoi != null && h("span", {}, " / 100"),
       ),
       h("div", { class: "sidebar-rows" },
-        row("Tự chấm (20%)", `${fmt(t.tuCham)} / 100`),
+        row("Cá nhân tự chấm (20%)", `${fmt(t.tuCham)} / 100`),
         row("Tổ chấm (30%)", t.toChua ? "Chưa chấm" : `${fmt(t.toCham)} / 100`),
         row("Hội đồng (50%)", t.hoiDongChua ? "Chưa chấm" : `${fmt(t.hoiDong)} / 100`),
       ),
@@ -67,7 +67,7 @@ export function renderSidebarSummary(phieu: PhieuResp): HTMLElement {
     ),
 
     h("div", { class: "sidebar-rows" },
-      row("Điểm tự chấm", `${fmt(t.tuCham)} / 100`),
+      row("Điểm cá nhân tự chấm", `${fmt(t.tuCham)} / 100`),
       conLai,
     ),
 

@@ -122,16 +122,19 @@ export function renderScoreTable(
     input.addEventListener("focus", () => input.select());
 
     const warn = h("span", { class: "row-warn-msg" });
-    const status = h("p", { class: "row-status chua" }, "Chưa chấm");
+    const statusBadge = h("span", { class: "row-status-badge chua" }, "Chưa chấm");
 
-    const card = h("div", { class: "row-card" },
+    const card = h("div", { class: "row-card row-chua" },
       h("div", { class: "row-head" },
         h("span", { class: "row-ma" }, r.ma),
-        h("span", { class: "row-max" }, `Tối đa ${r.diemToiDa} điểm`),
+        h("div", { class: "row-head-right" },
+          statusBadge,
+          h("span", { class: "row-max" }, `Tối đa ${r.diemToiDa} điểm`),
+        ),
       ),
       h("div", { class: "row-noidung" }, boNhan(r.ma, r.noiDung)),
       h("div", { class: "row-scores-line" },
-        h("span", { class: "row-tu-cham" }, "Điểm tự chấm: ", h("b", {}, fmt(r.diemTuCham))),
+        h("span", { class: "row-tu-cham" }, "Điểm cá nhân tự chấm: ", h("b", {}, fmt(r.diemTuCham))),
         lane === "hoiDong" && h("span", { class: "row-tu-cham" }, "Tổ đã chấm: ", h("b", {}, fmt(r.diemTo))),
         h("span", { class: "row-cham-chinh" },
           h("span", { class: "row-cham-label" }, `${nhanCham}:`),
@@ -139,18 +142,33 @@ export function renderScoreTable(
           h("span", { class: "row-max-inline" }, `/ ${r.diemToiDa}`),
         ),
       ),
-      status,
       warn,
     );
 
+    const datTrangThai = (trangThai: "chua" | "da" | "invalid") => {
+      card.classList.remove("row-chua", "row-da", "row-invalid", "row-warn");
+      statusBadge.classList.remove("chua", "da");
+      if (trangThai === "invalid") {
+        card.classList.add("row-invalid");
+        statusBadge.classList.add("chua");
+        statusBadge.textContent = "Chưa chấm";
+      } else if (trangThai === "da") {
+        card.classList.add("row-da");
+        statusBadge.classList.add("da");
+        statusBadge.textContent = "✓ Đã chấm";
+      } else {
+        card.classList.add("row-chua");
+        statusBadge.classList.add("chua");
+        statusBadge.textContent = "Chưa chấm";
+      }
+    };
+
     const kiemTra = () => {
       const raw = input.value.trim();
-      card.classList.remove("row-invalid", "row-warn", "row-done");
       warn.textContent = "";
 
       if (raw === "") {
-        status.textContent = "Chưa chấm";
-        status.className = "row-status chua";
+        datTrangThai("chua");
         capNhatTienDo();
         setDirty();
         return;
@@ -158,19 +176,14 @@ export function renderScoreTable(
 
       const v = Number(raw);
       if (!Number.isFinite(v) || v < 0 || v > r.diemToiDa) {
-        card.classList.add("row-invalid");
+        datTrangThai("invalid");
         warn.textContent = `Điểm phải từ 0 đến ${r.diemToiDa}.`;
-        status.textContent = "Chưa chấm";
-        status.className = "row-status chua";
         capNhatTienDo();
         setDirty();
         return;
       }
 
-      card.classList.add("row-done");
-      status.textContent = "✓ Đã chấm";
-      status.className = "row-status da";
-
+      datTrangThai("da");
       if (truoc != null && Math.abs(v - truoc) >= nguong) {
         card.classList.add("row-warn");
         warn.textContent = `Lệch ${fmt(Math.abs(v - truoc))} điểm so với lớp trước — kiểm tra lại.`;
@@ -180,11 +193,12 @@ export function renderScoreTable(
     };
 
     input.addEventListener("input", kiemTra);
+    input.addEventListener("focus", () => card.classList.add("row-focused"));
+    input.addEventListener("blur", () => card.classList.remove("row-focused"));
     inputs.set(r.ma, input);
     cardsByMa.set(r.ma, card);
     // Khởi tạo trạng thái ban đầu (không tính là "có thay đổi").
-    const raw0 = input.value.trim();
-    if (raw0 !== "") { card.classList.add("row-done"); status.textContent = "✓ Đã chấm"; status.className = "row-status da"; }
+    if (input.value.trim() !== "") datTrangThai("da");
 
     return card;
   });
@@ -325,19 +339,22 @@ function renderSection(title: string, diem: string, cards: HTMLElement[]): HTMLE
 
 function buildReadonlyCard(lane: Lane, r: DongPhieu): HTMLElement {
   const gia = diemHienCo(lane, r);
+  const daCham = gia != null;
 
-  return h("div", { class: `row-card${gia != null ? " row-done" : ""}` },
+  return h("div", { class: `row-card ${daCham ? "row-da" : "row-chua"}` },
     h("div", { class: "row-head" },
       h("span", { class: "row-ma" }, r.ma),
-      h("span", { class: "row-max" }, `Tối đa ${r.diemToiDa} điểm`),
+      h("div", { class: "row-head-right" },
+        h("span", { class: `row-status-badge ${daCham ? "da" : "chua"}` }, daCham ? "✓ Đã chấm" : "Chưa chấm"),
+        h("span", { class: "row-max" }, `Tối đa ${r.diemToiDa} điểm`),
+      ),
     ),
     h("div", { class: "row-noidung" }, boNhan(r.ma, r.noiDung)),
     h("div", { class: "row-scores-line" },
-      h("span", { class: "row-tu-cham" }, "Điểm tự chấm: ", h("b", {}, fmt(r.diemTuCham))),
+      h("span", { class: "row-tu-cham" }, "Điểm cá nhân tự chấm: ", h("b", {}, fmt(r.diemTuCham))),
       (lane === "hoiDong" || lane == null) &&
         h("span", { class: "row-tu-cham" }, "Tổ: ", h("b", {}, fmt(r.diemTo))),
       lane == null && h("span", { class: "row-tu-cham" }, "Hội đồng: ", h("b", {}, fmt(r.diemHoiDong))),
     ),
-    h("p", { class: `row-status ${gia != null ? "da" : "chua"}` }, gia != null ? "✓ Đã chấm" : "Chưa chấm"),
   );
 }

@@ -199,19 +199,40 @@ button {
 
 /* ============ Thẻ tiêu chí (CriteriaCard) ============ */
 
+/*
+ * Trạng thái từng tiêu chí: CHỮ (badge) + MÀU (border-left + nền cực
+ * nhạt) — không dùng màu làm tín hiệu duy nhất. Nền trang vẫn giữ
+ * cảm giác trắng: chỉ 1 dải màu 4px bên trái + nền phớt màu, KHÔNG tô
+ * cả card đậm.
+ */
 .row-card {
   border: 1.5px solid var(--border);
+  border-left: 4px solid var(--border-strong);
   border-radius: var(--radius);
   padding: 14px 16px;
   background: #fff;
 }
-.row-card.row-done { border-color: var(--border-strong); }
-.row-card.row-warn { border-color: #d99a2b; background: var(--warning-bg); }
-.row-card.row-invalid { border-color: var(--danger-ink); background: var(--danger-bg); }
+.row-card.row-chua { background: #fffcf3; border-left-color: #d69e2e; }
+.row-card.row-da { background: #f7fcf8; border-left-color: #4f9a68; }
+.row-card.row-warn { border-left-color: #d99a2b; background: var(--warning-bg); }
+.row-card.row-invalid { background: var(--danger-bg); border-left-color: var(--danger-ink); }
 
-.row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.row-card.row-focused {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(7, 86, 158, 0.22);
+}
+
+.row-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.row-head-right { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .row-ma { font-size: 1.15rem; font-weight: 800; color: var(--primary); }
 .row-max { font-size: 1rem; font-weight: 600; color: var(--text-secondary); }
+
+.row-status-badge {
+  font-size: 0.95rem; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+  white-space: nowrap;
+}
+.row-status-badge.chua { background: #fff3cd; color: #704600; }
+.row-status-badge.da { background: #e8f5ec; color: #176b38; }
 .row-noidung { margin: 6px 0 10px; font-size: 1.08rem; line-height: 1.55; color: var(--text-primary); }
 
 /* Dòng điểm ngang: tham khảo (tự chấm/lớp trước) bên trái, ô cần nhập
@@ -230,10 +251,7 @@ button {
   text-align: center; border-color: var(--primary);
 }
 .row-max-inline { font-size: 1.1rem; font-weight: 700; color: var(--text-secondary); }
-
-.row-status { font-size: 0.98rem; font-weight: 700; margin-top: 10px; }
-.row-status.chua { color: var(--text-secondary); }
-.row-status.da { color: var(--success-ink); }
+.row-card.row-invalid .row-cham-chinh input { border-color: var(--danger-ink); background: #fff; }
 
 .row-warn-msg { display: block; font-size: 0.98rem; color: var(--danger-ink); font-weight: 700; margin-top: 8px; }
 
