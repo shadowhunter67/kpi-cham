@@ -1,28 +1,47 @@
-import { h } from "../dom";
+import { h, fmt } from "../dom";
+import { boNhan } from "./text";
 import type { PhieuResp } from "../types";
 
 /**
- * Thẻ thông tin cơ bản của bản tự chấm — đặt cạnh bảng chấm, dính
- * (position: sticky) theo cuộn trang trên màn rộng, xuống dưới bảng
- * chấm trên màn hẹp. KHÔNG lặp lại bảng 26 dòng (đã có sẵn trong từng
- * ô "Tự chấm: …" của bảng chấm) — chỉ hiện thông tin tổng quan.
+ * Thẻ tự chấm dạng "điểm nổi bật + breakdown" (tham khảo layout thẻ điểm
+ * bên uniscorevn) — số to ở trên, vài dòng breakdown, chi tiết 26 dòng
+ * gấp lại trong <details> để không rối khi chưa cần xem.
  */
 export function renderTuChamCard(phieu: PhieuResp): HTMLElement {
   const tc = phieu.tuCham;
   const tong = Math.round((tc.tongTC + tc.tongKPI) * 100) / 100;
 
+  const row = (label: string, value: string) =>
+    h("div", { class: "tc-row" }, h("span", {}, label), h("b", {}, value));
+
   return h("aside", { class: "card tc-side" },
-    h("h3", { class: "tc-title" }, "Thông tin tự chấm"),
-    h("p", { class: "tc-meta" }, h("b", {}, phieu.hoTen)),
-    h("p", { class: "tc-meta" }, phieu.chucDanh),
-    h("p", { class: "tc-meta" }, `${phieu.to} · Kỳ ${phieu.ky}`),
-    tc.thoiGianNop && h("p", { class: "tc-meta" }, "Nộp Form: ", h("b", {}, tc.thoiGianNop)),
-    tc.nhiemVuKiemNhiem &&
-      h("p", { class: "tc-meta" }, "Kiêm nhiệm: ", h("b", {}, tc.nhiemVuKiemNhiem)),
-    h("div", { class: "tc-tong" },
-      h("span", {}, "Tiêu chí chung: ", h("b", {}, `${tc.tongTC} / 30`)),
-      h("span", {}, "KPI: ", h("b", {}, `${tc.tongKPI} / 70`)),
-      h("span", {}, "Tổng tự chấm: ", h("b", {}, `${tong} / 100`)),
+    h("p", { class: "tc-label" }, "Tổng điểm tự chấm"),
+    h("div", { class: "tc-score" }, String(tong), h("span", {}, " / 100")),
+
+    h("div", { class: "tc-rows" },
+      row("Tiêu chí chung", `${fmt(tc.tongTC)} / 30`),
+      row("KPI", `${fmt(tc.tongKPI)} / 70`),
+    ),
+
+    h("details", { class: "tc-details" },
+      h("summary", {}, "Xem chi tiết"),
+      h("div", { class: "tc-details-body" },
+        h("p", { class: "tc-meta" }, h("b", {}, phieu.hoTen), ` — ${phieu.chucDanh}`),
+        h("p", { class: "tc-meta" }, `${phieu.to} · Kỳ ${phieu.ky}`),
+        tc.thoiGianNop && h("p", { class: "tc-meta" }, "Nộp Form: ", h("b", {}, tc.thoiGianNop)),
+        tc.nhiemVuKiemNhiem &&
+          h("p", { class: "tc-meta" }, "Kiêm nhiệm: ", h("b", {}, tc.nhiemVuKiemNhiem)),
+        h("table", { class: "tc-table" },
+          h("thead", {}, h("tr", {}, h("th", {}, "Mã"), h("th", {}, "Nội dung"), h("th", {}, "Điểm"))),
+          h("tbody", {}, ...phieu.rows.map((r) =>
+            h("tr", {},
+              h("td", { class: "tc-ma" }, r.ma),
+              h("td", {}, boNhan(r.ma, r.noiDung)),
+              h("td", { class: "tc-diem" }, fmt(r.diemTuCham)),
+            ),
+          )),
+        ),
+      ),
     ),
   );
 }

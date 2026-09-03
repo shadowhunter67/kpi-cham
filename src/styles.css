@@ -147,13 +147,36 @@ button {
   .tc-side { position: sticky; top: 16px; }
 }
 
-.tc-title { margin: 0 0 10px; font-size: 1.15rem; color: var(--accent); }
-.tc-meta { margin: 0 0 8px; font-size: 1rem; }
-.tc-tong {
-  display: flex; flex-direction: column; gap: 4px;
-  background: var(--panel); border: 2px solid var(--border); border-radius: 8px;
-  padding: 12px 14px; margin-top: 10px; font-size: 1rem;
+.tc-side { padding: 22px; }
+.tc-label {
+  margin: 0 0 6px; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.04em;
+  text-transform: uppercase; color: var(--muted);
 }
+.tc-score { margin: 0 0 14px; font-size: 2.3rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.tc-score span { font-size: 1.1rem; font-weight: 600; color: var(--muted); }
+
+.tc-rows { border-top: 2px solid var(--border); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.tc-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 1rem; }
+.tc-row span { color: var(--muted); }
+.tc-row b { font-size: 1.05rem; }
+
+.tc-details { margin-top: 14px; border-top: 2px solid var(--border); padding-top: 12px; }
+.tc-details summary {
+  cursor: pointer; font-weight: 700; color: var(--accent); font-size: 1rem;
+  list-style: none;
+}
+.tc-details summary::-webkit-details-marker { display: none; }
+.tc-details summary::before { content: "▸ "; }
+.tc-details[open] summary::before { content: "▾ "; }
+.tc-details-body { margin-top: 12px; max-height: 60vh; overflow-y: auto; }
+
+.tc-meta { margin: 0 0 8px; font-size: 0.95rem; }
+
+.tc-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+.tc-table th, .tc-table td { border-bottom: 1px solid var(--border); padding: 7px 5px; text-align: left; vertical-align: top; }
+.tc-table th { color: var(--muted); font-size: 0.8rem; }
+.tc-ma { font-weight: 700; color: var(--accent); white-space: nowrap; }
+.tc-diem { font-weight: 700; text-align: center; white-space: nowrap; }
 
 @media (max-width: 900px) { .summary { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 460px) {
