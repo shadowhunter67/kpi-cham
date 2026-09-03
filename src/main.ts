@@ -22,6 +22,7 @@ function donDepSticky() {
   stickyObserver = null;
   stickyBar?.remove();
   stickyBar = null;
+  document.body.classList.remove("has-sticky-bar");
 }
 
 function moTaVaiTro(v: VaiTro): string {
@@ -131,7 +132,11 @@ async function chonNguoi(n: Nguoi | null) {
     );
 
     stickyObserver = new IntersectionObserver(
-      ([entry]) => stickyBar?.classList.toggle("visible", !entry.isIntersecting),
+      ([entry]) => {
+        const che = !entry.isIntersecting;
+        stickyBar?.classList.toggle("visible", che);
+        document.body.classList.toggle("has-sticky-bar", che);
+      },
       { threshold: 0, rootMargin: "-56px 0px 0px 0px" },
     );
     stickyObserver.observe(personHeader);
