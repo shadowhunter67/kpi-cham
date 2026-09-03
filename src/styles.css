@@ -46,7 +46,7 @@ body {
 
 /* ============ Bố cục tổng thể ============ */
 
-.screen { max-width: 1320px; margin: 0 auto; padding: 22px 28px 90px; }
+.screen { max-width: 1240px; margin: 0 auto; padding: 22px 28px 90px; }
 @media (max-width: 700px) { .screen { padding: 16px 14px 90px; } }
 
 .app-bar {
@@ -71,7 +71,7 @@ body {
 .ident-ky { color: var(--text-secondary); font-size: 0.98rem; }
 
 .field-label { display: block; margin-bottom: 10px; font-weight: 700; font-size: 1.05rem; color: var(--text-primary); }
-.nx-field > span, .row-input > span { font-weight: 600; font-size: 1.02rem; color: var(--text-primary); }
+.nx-field > span { font-weight: 600; font-size: 1.02rem; color: var(--text-primary); }
 
 .signin-box { margin-top: 16px; display: flex; justify-content: center; }
 
@@ -129,8 +129,8 @@ button {
 /* ============ Layout 2 cột: bảng chấm + sidebar dính ============ */
 
 .kpi-layout { display: grid; grid-template-columns: 1fr; gap: 24px; align-items: start; }
-@media (min-width: 1200px) {
-  .kpi-layout { grid-template-columns: minmax(0, 1fr) 360px; }
+@media (min-width: 1000px) {
+  .kpi-layout { grid-template-columns: minmax(0, 1fr) 300px; }
   .kpi-sidebar { position: sticky; top: 20px; }
 }
 
@@ -145,12 +145,12 @@ button {
 .sticky-eval-bar {
   position: sticky; top: 0; z-index: 40;
   background: #fff; border-bottom: 1.5px solid var(--border);
-  margin: 0 -20px 16px; padding: 10px 20px;
+  margin: 0 -20px 16px; padding: 14px 20px; min-height: 52px;
   display: flex; justify-content: space-between; align-items: center; gap: 16px;
   flex-wrap: wrap;
 }
 .sticky-eval-bar strong { font-size: 1.02rem; }
-.sticky-eval-bar span { color: var(--text-secondary); font-size: 0.98rem; }
+.sticky-eval-bar span { color: var(--text-secondary); font-size: 1rem; }
 
 .row-card, #person-header, .kpi-sidebar { scroll-margin-top: 60px; }
 
@@ -183,18 +183,6 @@ button {
 .progress-remaining { font-size: 1rem; font-weight: 600; color: var(--warning-ink); }
 .progress-remaining.done { color: var(--success-ink); }
 
-/* ============ Ô tổng quan điểm (ScoreSummary) ============ */
-
-.summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 4px 0; }
-@media (max-width: 900px) { .summary { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 460px) { .summary { grid-template-columns: 1fr; } }
-.sum-cell { background: var(--bg-subtle); border: 1.5px solid var(--border); border-radius: 8px; padding: 16px; }
-.sum-label { display: block; font-size: 0.95rem; color: var(--text-secondary); font-weight: 700; }
-.sum-value { display: block; font-size: 1.55rem; font-weight: 800; margin-top: 4px; }
-.sum-value.muted { font-size: 1.05rem; font-weight: 700; color: var(--text-secondary); }
-.sum-note { display: block; font-size: 0.92rem; color: var(--text-secondary); margin-top: 3px; }
-.summary-disclaimer { grid-column: 1 / -1; font-size: 0.95rem; color: var(--text-secondary); margin: 4px 0 0; }
-
 /* ============ Nhóm tiêu chí (CriteriaSection) ============ */
 
 .criteria-section { margin-top: 22px; }
@@ -206,15 +194,15 @@ button {
 .criteria-section-head h3 { margin: 0; font-size: 1.25rem; font-weight: 800; }
 .criteria-section-head span { font-size: 1rem; color: var(--text-secondary); font-weight: 600; }
 
-.rows-grid { display: grid; gap: 14px; }
-@media (min-width: 780px) { .rows-grid { grid-template-columns: 1fr 1fr; } }
+/* MỘT CỘT — người dùng chấm tuần tự từ trên xuống, không quét zigzag. */
+.rows-grid { display: flex; flex-direction: column; gap: 12px; }
 
 /* ============ Thẻ tiêu chí (CriteriaCard) ============ */
 
 .row-card {
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px;
+  padding: 14px 16px;
   background: #fff;
 }
 .row-card.row-done { border-color: var(--border-strong); }
@@ -222,19 +210,26 @@ button {
 .row-card.row-invalid { border-color: var(--danger-ink); background: var(--danger-bg); }
 
 .row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.row-ma { font-size: 1.12rem; font-weight: 800; color: var(--primary); }
+.row-ma { font-size: 1.15rem; font-weight: 800; color: var(--primary); }
 .row-max { font-size: 1rem; font-weight: 600; color: var(--text-secondary); }
-.row-noidung { margin: 8px 0 12px; font-size: 1.08rem; line-height: 1.55; color: var(--text-primary); }
-.row-refs { display: flex; flex-wrap: wrap; gap: 6px 20px; font-size: 1rem; color: var(--text-secondary); margin-bottom: 4px; }
-.row-refs b { color: var(--text-primary); }
+.row-noidung { margin: 6px 0 10px; font-size: 1.08rem; line-height: 1.55; color: var(--text-primary); }
 
-.row-input { display: flex; align-items: center; gap: 12px; margin-top: 12px; flex-wrap: wrap; }
-.row-input-box { display: flex; align-items: center; gap: 8px; }
-.row-input input {
-  width: 84px; min-height: 48px; padding: 8px; font-size: 1.25rem; font-weight: 700;
-  text-align: center;
+/* Dòng điểm ngang: tham khảo (tự chấm/lớp trước) bên trái, ô cần nhập
+ * nổi bật bên phải — mức ưu tiên thị giác: input > nội dung > tự chấm. */
+.row-scores-line {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 10px 20px; margin-top: 4px;
 }
-.row-input .row-max-inline { font-size: 1.1rem; font-weight: 700; color: var(--text-secondary); }
+.row-tu-cham { font-size: 1rem; color: var(--text-secondary); }
+.row-tu-cham b { color: var(--text-primary); font-weight: 700; }
+
+.row-cham-chinh { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.row-cham-label { font-size: 1.08rem; font-weight: 800; color: var(--text-primary); white-space: nowrap; }
+.row-cham-chinh input {
+  width: 84px; min-height: 48px; padding: 8px; font-size: 1.25rem; font-weight: 700;
+  text-align: center; border-color: var(--primary);
+}
+.row-max-inline { font-size: 1.1rem; font-weight: 700; color: var(--text-secondary); }
 
 .row-status { font-size: 0.98rem; font-weight: 700; margin-top: 10px; }
 .row-status.chua { color: var(--text-secondary); }
@@ -274,7 +269,13 @@ button {
 .sidebar-title { margin: 0 0 4px; font-size: 0.9rem; font-weight: 800; letter-spacing: 0.03em; color: var(--text-secondary); }
 .sidebar-score { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin: 4px 0 12px; line-height: 1; }
 .sidebar-score span { font-size: 1.05rem; font-weight: 600; color: var(--text-secondary); }
-.sidebar-rows { display: flex; flex-direction: column; gap: 8px; border-top: 1.5px solid var(--border); padding-top: 12px; }
+
+.sidebar-progress { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; font-size: 1rem; }
+.sidebar-sub { color: var(--text-secondary); }
+.sidebar-progress-val { font-weight: 700; }
+.sidebar-progress-val.warn { color: var(--warning-ink); }
+
+.sidebar-rows { display: flex; flex-direction: column; gap: 8px; border-top: 1.5px solid var(--border); margin-top: 14px; padding-top: 12px; }
 .sidebar-row { display: flex; justify-content: space-between; font-size: 1rem; }
 .sidebar-row span { color: var(--text-secondary); }
 .sidebar-row b { font-size: 1.05rem; }
@@ -302,27 +303,6 @@ button {
 .detail-table th { color: var(--text-secondary); font-size: 0.92rem; }
 .detail-ma { font-weight: 700; color: var(--primary); white-space: nowrap; }
 .detail-diem { font-weight: 700; text-align: center; white-space: nowrap; }
-
-/* ============ Thẻ tự chấm (bên dưới sidebar) ============ */
-
-.tc-side { padding: 20px; }
-.tc-label {
-  margin: 0 0 6px; font-size: 0.9rem; font-weight: 800; letter-spacing: 0.03em; color: var(--text-secondary);
-}
-.tc-score { margin: 0 0 12px; font-size: 1.9rem; font-weight: 800; color: var(--primary); line-height: 1; }
-.tc-score span { font-size: 1rem; font-weight: 600; color: var(--text-secondary); }
-.tc-rows { border-top: 1.5px solid var(--border); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
-.tc-row { display: flex; justify-content: space-between; align-items: baseline; font-size: 1rem; }
-.tc-row span { color: var(--text-secondary); }
-.tc-row b { font-size: 1.02rem; }
-
-.tc-details { margin-top: 14px; border-top: 1.5px solid var(--border); padding-top: 12px; }
-.tc-details summary { cursor: pointer; font-weight: 700; color: var(--primary); font-size: 1rem; list-style: none; }
-.tc-details summary::-webkit-details-marker { display: none; }
-.tc-details summary::before { content: "▸ "; }
-.tc-details[open] summary::before { content: "▾ "; }
-.tc-details-body { margin-top: 12px; }
-.tc-meta { margin: 0 0 8px; font-size: 0.98rem; }
 
 /* ============ Nhận diện / lỗi cấu hình ============ */
 

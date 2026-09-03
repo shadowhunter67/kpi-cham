@@ -5,10 +5,8 @@ import { initAuth, renderSignInButton, clearToken } from "./auth";
 import { api, ApiError } from "./api";
 import { renderPicker } from "./views/picker";
 import { renderScoreTable, laneCua, diemHienCo } from "./views/scoreTable";
-import { renderSummary } from "./views/summary";
 import { renderSidebarSummary } from "./views/sidebarSummary";
 import { renderPersonHeader } from "./views/personHeader";
-import { renderTuChamCard } from "./views/tuChamPanel";
 import type { KhoiTaoResp, Nguoi, VaiTro } from "./types";
 
 let phien: KhoiTaoResp | null = null;
@@ -111,12 +109,10 @@ async function chonNguoi(n: Nguoi | null) {
         h("div", { class: "card" },
           personHeader,
           stickyBar,
-          renderSummary(phieu),
           scoreEl,
         ),
         h("div", { class: "kpi-sidebar" },
           renderSidebarSummary(phieu),
-          renderTuChamCard(phieu),
         ),
       ),
     );

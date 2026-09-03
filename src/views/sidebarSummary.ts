@@ -5,10 +5,10 @@ import { boNhan } from "./text";
 import type { PhieuResp } from "../types";
 
 /**
- * Sidebar dính (sticky) bên phải: tổng điểm KPI tạm tính (điểm thật,
- * dùng chung tongHop() với ScoreSummary — không tạo số liệu riêng) +
- * nút "Xem chi tiết điểm" mở modal 1 tầng scroll, tránh nhét bảng dài
- * vào 1 khung hẹp có scroll riêng.
+ * Sidebar — CHỈ 1 card tóm tắt (không lặp lại thông tin ở nhiều nơi).
+ * Ưu tiên trạng thái của LỚP đang chấm (Tổ hoặc Hội đồng) vì đây là
+ * màn hình thao tác của người đó; điểm tự chấm + lớp còn lại chỉ là
+ * dòng tham khảo bên dưới.
  */
 export function renderSidebarSummary(phieu: PhieuResp): HTMLElement {
   const t = tongHop(phieu);
@@ -20,17 +20,57 @@ export function renderSidebarSummary(phieu: PhieuResp): HTMLElement {
   const btnChiTiet = h("button", { class: "btn-secondary", type: "button" }, "Xem chi tiết điểm");
   btnChiTiet.addEventListener("click", () => moChiTietDiem(phieu, lane));
 
+  // Chế độ chỉ xem (thành viên hội đồng) — không có lớp nào đang thao tác,
+  // hiện KPI tổng hợp làm tham khảo.
+  if (lane == null) {
+    return h("aside", { class: "card sidebar-card" },
+      h("p", { class: "sidebar-title" }, "Tổng điểm KPI tạm tính"),
+      h("div", { class: "sidebar-score" },
+        t.kpiCuoi == null ? "Chưa đủ điểm" : String(t.kpiCuoi),
+        t.kpiCuoi != null && h("span", {}, " / 100"),
+      ),
+      h("div", { class: "sidebar-rows" },
+        row("Tự chấm (20%)", `${fmt(t.tuCham)} / 100`),
+        row("Tổ chấm (30%)", t.toChua ? "Chưa chấm" : `${fmt(t.toCham)} / 100`),
+        row("Hội đồng (50%)", t.hoiDongChua ? "Chưa chấm" : `${fmt(t.hoiDong)} / 100`),
+      ),
+      h("div", { class: "sidebar-actions" }, btnChiTiet),
+    );
+  }
+
+  const chinh = lane === "hoiDong"
+    ? { nhan: "ĐIỂM HỘI ĐỒNG CHẤM", gia: t.hoiDong, chua: t.hoiDongChua }
+    : { nhan: "ĐIỂM TỔ CHẤM", gia: t.toCham, chua: t.toChua };
+
+  const conLai = lane === "hoiDong"
+    ? row("Tổ chấm", t.toChua ? "Chưa chấm" : `${fmt(t.toCham)} / 100`)
+    : row("Hội đồng", t.hoiDongChua ? "Chưa chấm" : `${fmt(t.hoiDong)} / 100`);
+
+  const done = phieu.rows.filter((r) => diemHienCo(lane, r) != null).length;
+  const total = phieu.rows.length;
+  const con = total - done;
+
   return h("aside", { class: "card sidebar-card" },
-    h("p", { class: "sidebar-title" }, "Tổng điểm KPI tạm tính"),
+    h("p", { class: "sidebar-title" }, chinh.nhan),
     h("div", { class: "sidebar-score" },
-      t.kpiCuoi == null ? "Chưa đủ điểm" : String(t.kpiCuoi),
-      t.kpiCuoi != null && h("span", {}, " / 100"),
+      chinh.chua ? "Chưa đủ điểm" : fmt(chinh.gia),
+      !chinh.chua && h("span", {}, " / 100"),
     ),
+
+    h("div", { class: "sidebar-progress" },
+      h("span", { class: "sidebar-sub" }, "Tiến độ"),
+      h("span", { class: "sidebar-progress-val" }, `${done} / ${total} tiêu chí`),
+    ),
+    con > 0 && h("div", { class: "sidebar-progress" },
+      h("span", { class: "sidebar-sub" }, "Còn thiếu"),
+      h("span", { class: "sidebar-progress-val warn" }, `${con} tiêu chí`),
+    ),
+
     h("div", { class: "sidebar-rows" },
-      row("Tự chấm (20%)", `${fmt(t.tuCham)} / 100`),
-      row("Tổ chấm (30%)", t.toChua ? "Chưa chấm" : `${fmt(t.toCham)} / 100`),
-      row("Hội đồng (50%)", t.hoiDongChua ? "Chưa chấm" : `${fmt(t.hoiDong)} / 100`),
+      row("Điểm tự chấm", `${fmt(t.tuCham)} / 100`),
+      conLai,
     ),
+
     h("div", { class: "sidebar-actions" }, btnChiTiet),
   );
 }

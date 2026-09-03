@@ -109,14 +109,11 @@ export function renderScoreTable(
     input?.focus();
   }
 
+  const nhanCham = lane === "hoiDong" ? "Điểm Hội đồng chấm" : "Điểm Tổ chấm";
+
   const cards = phieu.rows.map((r) => {
     const truoc = diemLopTruoc(lane, r);
     const nguong = r.diemToiDa * 0.25;
-
-    const refs: HTMLElement[] = [];
-    if (lane === "hoiDong") {
-      refs.push(h("span", {}, "Tổ đã chấm: ", h("b", {}, fmt(r.diemTo))));
-    }
 
     const input = h("input", {
       type: "number", min: "0", max: String(r.diemToiDa), step: "0.5", inputmode: "decimal",
@@ -133,11 +130,14 @@ export function renderScoreTable(
         h("span", { class: "row-max" }, `Tối đa ${r.diemToiDa} điểm`),
       ),
       h("div", { class: "row-noidung" }, boNhan(r.ma, r.noiDung)),
-      h("p", { class: "row-refs" }, "Điểm tự chấm: ", h("b", {}, fmt(r.diemTuCham))),
-      refs.length ? h("p", { class: "row-refs" }, ...refs) : null,
-      h("div", { class: "row-input" },
-        h("span", { class: "row-input-label" }, "Điểm bạn chấm"),
-        h("div", { class: "row-input-box" }, input, h("span", { class: "row-max-inline" }, `/ ${r.diemToiDa}`)),
+      h("div", { class: "row-scores-line" },
+        h("span", { class: "row-tu-cham" }, "Điểm tự chấm: ", h("b", {}, fmt(r.diemTuCham))),
+        lane === "hoiDong" && h("span", { class: "row-tu-cham" }, "Tổ đã chấm: ", h("b", {}, fmt(r.diemTo))),
+        h("span", { class: "row-cham-chinh" },
+          h("span", { class: "row-cham-label" }, `${nhanCham}:`),
+          input,
+          h("span", { class: "row-max-inline" }, `/ ${r.diemToiDa}`),
+        ),
       ),
       status,
       warn,
@@ -324,10 +324,6 @@ function renderSection(title: string, diem: string, cards: HTMLElement[]): HTMLE
 }
 
 function buildReadonlyCard(lane: Lane, r: DongPhieu): HTMLElement {
-  const refs: HTMLElement[] = [];
-  if (lane === "hoiDong" || lane == null) refs.push(h("span", {}, "Tổ: ", h("b", {}, fmt(r.diemTo))));
-  if (lane == null) refs.push(h("span", {}, "Hội đồng: ", h("b", {}, fmt(r.diemHoiDong))));
-
   const gia = diemHienCo(lane, r);
 
   return h("div", { class: `row-card${gia != null ? " row-done" : ""}` },
@@ -336,8 +332,12 @@ function buildReadonlyCard(lane: Lane, r: DongPhieu): HTMLElement {
       h("span", { class: "row-max" }, `Tối đa ${r.diemToiDa} điểm`),
     ),
     h("div", { class: "row-noidung" }, boNhan(r.ma, r.noiDung)),
-    h("p", { class: "row-refs" }, "Điểm tự chấm: ", h("b", {}, fmt(r.diemTuCham))),
-    refs.length ? h("p", { class: "row-refs" }, ...refs) : null,
+    h("div", { class: "row-scores-line" },
+      h("span", { class: "row-tu-cham" }, "Điểm tự chấm: ", h("b", {}, fmt(r.diemTuCham))),
+      (lane === "hoiDong" || lane == null) &&
+        h("span", { class: "row-tu-cham" }, "Tổ: ", h("b", {}, fmt(r.diemTo))),
+      lane == null && h("span", { class: "row-tu-cham" }, "Hội đồng: ", h("b", {}, fmt(r.diemHoiDong))),
+    ),
     h("p", { class: `row-status ${gia != null ? "da" : "chua"}` }, gia != null ? "✓ Đã chấm" : "Chưa chấm"),
   );
 }
