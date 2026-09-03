@@ -32,7 +32,9 @@ export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLEle
     : lane === "to"
       ? phieu.trangThai.to === "đã chốt"
       : false;
-  const chiDoc = lane == null || daChot;
+  // Hội đồng phải chờ Tổ chốt xong.
+  const choToChot = lane === "hoiDong" && phieu.quyen.hoiDongChoTo;
+  const chiDoc = lane == null || daChot || choToChot;
 
   const inputs = new Map<string, HTMLInputElement>();
   const cards: HTMLElement[] = [];
@@ -109,10 +111,13 @@ export function renderScoreTable(phieu: PhieuResp, onSaved: () => void): HTMLEle
 
   // ---- chế độ chỉ đọc ----
   if (chiDoc) {
+    const note = lane == null
+      ? h("p", { class: "muc-note" }, "Bạn không được phân công chấm phiếu này — chế độ chỉ xem.")
+      : choToChot
+        ? h("p", { class: "muc-note warn" }, "Chờ Tổ bấm “Chốt & khóa” phiếu này rồi Hội đồng mới chấm được.")
+        : h("p", { class: "muc-note warn" }, `Phiếu ${lane === "hoiDong" ? "Hội đồng" : "Tổ"} đã chốt.`);
     wrap.append(...kids(
-      lane == null
-        ? h("p", { class: "muc-note" }, "Bạn không được phân công chấm phiếu này — chế độ chỉ xem.")
-        : h("p", { class: "muc-note warn" }, `Phiếu ${lane === "hoiDong" ? "Hội đồng" : "Tổ"} đã chốt.`),
+      note,
       ...cards,
       phieu.nhanXet.to && h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét Tổ: "), phieu.nhanXet.to),
       phieu.nhanXet.hoiDong && h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét Hội đồng: "), phieu.nhanXet.hoiDong),

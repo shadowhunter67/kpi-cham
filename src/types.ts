@@ -37,7 +37,7 @@ export interface PhieuResp {
   to: string;
   ky: string;
   vaiTro: VaiTro;
-  quyen: { laNguoiChamTo: boolean; laHieuTruong: boolean };
+  quyen: { laNguoiChamTo: boolean; laHieuTruong: boolean; hoiDongChoTo: boolean };
   canEdit: { to: boolean; hoiDong: boolean };
   trangThai: { to: TrangThai; hoiDong: TrangThai };
   rows: DongPhieu[];
