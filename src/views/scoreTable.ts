@@ -1,15 +1,10 @@
 import { h, fmt, kids } from "../dom";
 import { api, ApiError } from "../api";
 import { promptReauth } from "../auth";
+import { boNhan } from "./text";
 import type { DiemItem, DongPhieu, PhieuResp } from "../types";
 
 type Lane = "to" | "hoiDong" | null;
-
-/** Bỏ tiền tố mã lặp trong nội dung ("HT-20 — Thực hiện…" → "Thực hiện…"). */
-function boNhan(ma: string, noiDung: string): string {
-  const re = new RegExp(`^\\s*${ma.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\s*[—–-]\\s*`, "i");
-  return noiDung.replace(re, "").trim() || noiDung;
-}
 
 function laneCua(phieu: PhieuResp): Lane {
   if (phieu.quyen.laHieuTruong) return "hoiDong";

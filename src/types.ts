@@ -42,6 +42,12 @@ export interface PhieuResp {
   trangThai: { to: TrangThai; hoiDong: TrangThai };
   rows: DongPhieu[];
   nhanXet: { to: string; hoiDong: string };
+  tuCham: {
+    thoiGianNop: string;
+    nhiemVuKiemNhiem: string;
+    tongTC: number;
+    tongKPI: number;
+  };
 }
 
 export interface DiemItem {

@@ -6,6 +6,7 @@ import { api, ApiError } from "./api";
 import { renderPicker } from "./views/picker";
 import { renderScoreTable } from "./views/scoreTable";
 import { renderSummary } from "./views/summary";
+import { renderTuChamDrawer } from "./views/tuChamPanel";
 import type { KhoiTaoResp, Nguoi, VaiTro } from "./types";
 
 let phien: KhoiTaoResp | null = null;
@@ -81,6 +82,7 @@ async function chonNguoi(n: Nguoi | null) {
     const phieu = await api.layPhieu(n.hoTen, n.chucDanh, n.to);
     const el = document.getElementById("phieu-holder");
     if (!el) return;
+    const { toggle, drawer } = renderTuChamDrawer(phieu);
     el.replaceChildren(
       h("div", { class: "card" },
         h("div", { class: "phieu-head" },
@@ -90,10 +92,12 @@ async function chonNguoi(n: Nguoi | null) {
             `Tổ: ${phieu.trangThai.to === "đã chốt" ? "đã chốt" : "chưa chốt"}`),
           h("span", { class: `badge tt-${phieu.trangThai.hoiDong === "đã chốt" ? "chot" : "chua"}` },
             `HĐ: ${phieu.trangThai.hoiDong === "đã chốt" ? "đã chốt" : "chưa chốt"}`),
+          toggle,
         ),
         renderSummary(phieu),
         renderScoreTable(phieu, () => void chonNguoi(dangChon)),
       ),
+      drawer,
     );
   } catch (err) {
     const msg = err instanceof ApiError ? err.message : String(err);
