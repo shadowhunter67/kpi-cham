@@ -30,10 +30,6 @@
 * { box-sizing: border-box; }
 
 html { color-scheme: light; background: #fff; }
-/* Tắt scroll anchoring — nếu không, trình duyệt tự bù cuộn khi
- * body.has-sticky-bar thêm padding-top lúc đang cuộn, triệt tiêu
- * khoảng chừa cho sticky-eval-bar. */
-html, body { overflow-anchor: none; }
 
 body {
   margin: 0;
@@ -140,22 +136,23 @@ button {
 
 /* ============ Sticky compact header khi cuộn ============ */
 
+/*
+ * position: sticky (KHÔNG phải fixed) — trình duyệt tự dành chỗ và tự
+ * "dán" đúng lúc, không cần JS tính padding bù (từng bị scroll
+ * anchoring của Chrome vô hiệu hóa). Đặt ngay trong luồng nội dung,
+ * ngay dưới header người được chấm.
+ */
 .sticky-eval-bar {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+  position: sticky; top: 0; z-index: 40;
   background: #fff; border-bottom: 1.5px solid var(--border);
-  padding: 10px 20px;
+  margin: 0 -20px 16px; padding: 10px 20px;
   display: flex; justify-content: space-between; align-items: center; gap: 16px;
   flex-wrap: wrap;
-  transform: translateY(-110%);
-  transition: transform 0.15s ease;
 }
-.sticky-eval-bar.visible { transform: translateY(0); }
 .sticky-eval-bar strong { font-size: 1.02rem; }
 .sticky-eval-bar span { color: var(--text-secondary); font-size: 0.98rem; }
 
-/* Chừa chỗ cho sticky-eval-bar để không che nội dung phía dưới nó. */
-body.has-sticky-bar { padding-top: 56px; }
-.row-card, #person-header, .kpi-sidebar { scroll-margin-top: 72px; }
+.row-card, #person-header, .kpi-sidebar { scroll-margin-top: 60px; }
 
 /* ============ Header người được chấm ============ */
 

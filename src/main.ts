@@ -14,17 +14,6 @@ import type { KhoiTaoResp, Nguoi, VaiTro } from "./types";
 let phien: KhoiTaoResp | null = null;
 let dangChon: Nguoi | null = null;
 
-let stickyObserver: IntersectionObserver | null = null;
-let stickyBar: HTMLElement | null = null;
-
-function donDepSticky() {
-  stickyObserver?.disconnect();
-  stickyObserver = null;
-  stickyBar?.remove();
-  stickyBar = null;
-  document.body.classList.remove("has-sticky-bar");
-}
-
 function moTaVaiTro(v: VaiTro): string {
   const phan: string[] = [];
   if (v.to) phan.push(`Tổ "${v.to}" — Tổ ${v.toChucVu}`);
@@ -79,7 +68,6 @@ async function onSignedIn() {
 }
 
 function dangXuat() {
-  donDepSticky();
   clearToken();
   phien = null;
   dangChon = null;
@@ -89,7 +77,6 @@ function dangXuat() {
 async function chonNguoi(n: Nguoi | null) {
   dangChon = n;
   render();
-  donDepSticky();
   if (!n) return;
 
   const holder = document.getElementById("phieu-holder");
@@ -104,12 +91,14 @@ async function chonNguoi(n: Nguoi | null) {
     const tongTieuChi = phieu.rows.length;
     const daChamBanDau = phieu.rows.filter((r) => diemHienCo(lane, r) != null).length;
 
+    // position: sticky (không phải fixed) — tự dán đúng lúc khi cuộn qua
+    // khỏi header, không cần JS tính toán khoảng trống bù (né lỗi
+    // scroll-anchoring của Chrome khi đổi layout giữa lúc đang cuộn).
     const stickyProgress = h("span", {}, `Đã chấm ${daChamBanDau} / ${tongTieuChi} tiêu chí`);
-    stickyBar = h("div", { class: "sticky-eval-bar" },
+    const stickyBar = h("div", { class: "sticky-eval-bar" },
       h("strong", {}, `${phieu.hoTen} · Kỳ ${phieu.ky}`),
       stickyProgress,
     );
-    document.body.appendChild(stickyBar);
 
     const personHeader = renderPersonHeader(phieu);
 
@@ -121,6 +110,7 @@ async function chonNguoi(n: Nguoi | null) {
       h("div", { class: "kpi-layout" },
         h("div", { class: "card" },
           personHeader,
+          stickyBar,
           renderSummary(phieu),
           scoreEl,
         ),
@@ -130,16 +120,6 @@ async function chonNguoi(n: Nguoi | null) {
         ),
       ),
     );
-
-    stickyObserver = new IntersectionObserver(
-      ([entry]) => {
-        const che = !entry.isIntersecting;
-        stickyBar?.classList.toggle("visible", che);
-        document.body.classList.toggle("has-sticky-bar", che);
-      },
-      { threshold: 0, rootMargin: "-56px 0px 0px 0px" },
-    );
-    stickyObserver.observe(personHeader);
   } catch (err) {
     const msg = err instanceof ApiError ? err.message : String(err);
     const el = document.getElementById("phieu-holder");
