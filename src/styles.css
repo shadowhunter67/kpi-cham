@@ -99,6 +99,93 @@ select:focus-visible, input:focus-visible, textarea:focus-visible {
 .picker-filters { display: flex; gap: 10px; flex-wrap: wrap; }
 .picker-filters select { flex: 1 1 46%; }
 
+/* ============ Trang Tổng quan chấm KPI — 4 ô trạng thái + danh sách ============ */
+
+/*
+ * 4 ô đếm số lượng, bấm để lọc — KHÔNG phải biểu đồ, chỉ là nút to có
+ * số lớn dễ đọc. Mỗi ô 1 màu viền trái trùng với màu trạng thái đã
+ * dùng ở nơi khác trong app để người dùng không phải học lại.
+ */
+.overview-stats {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px;
+}
+@media (min-width: 720px) { .overview-stats { grid-template-columns: repeat(4, 1fr); } }
+
+.stat-tile {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 4px;
+  background: #fff; border: 1.5px solid var(--border); border-left: 6px solid var(--border-strong);
+  border-radius: var(--radius); padding: 16px 18px; text-align: left; cursor: pointer;
+  font: inherit; min-height: 90px;
+}
+.stat-tile:hover { background: var(--bg-subtle); }
+.stat-tile.chon { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(7, 86, 158, 0.2); }
+.stat-count { font-size: 2rem; font-weight: 800; line-height: 1; color: var(--text-primary); }
+.stat-label { font-size: 1rem; font-weight: 700; color: var(--text-secondary); }
+
+/*
+ * Mỗi trạng thái 1 màu riêng cả viền lẫn số đếm — "Đã đủ điểm" (xanh lá)
+ * và "Đã chốt" (tím) trước đây cùng họ xanh lá, dễ nhầm khi liếc nhanh.
+ */
+.stat-chua-bat-dau { border-left-color: #d69e2e; }
+.stat-chua-bat-dau .stat-count { color: #8a4b00; }
+.stat-dang-cham { border-left-color: #2f80c4; }
+.stat-dang-cham .stat-count { color: #0b4a7a; }
+.stat-du-chua-chot { border-left-color: #4f9a68; }
+.stat-du-chua-chot .stat-count { color: var(--success-ink); }
+.stat-da-chot { border-left-color: #6b4fa0; }
+.stat-da-chot .stat-count { color: #4a2f82; }
+
+.overview-reset {
+  background: none; border: none; padding: 6px 0; min-height: auto;
+  font-size: 1rem; font-weight: 700; color: var(--text-secondary); cursor: pointer;
+}
+.overview-reset.dang-loc { color: var(--primary); text-decoration: underline; }
+
+.overview-list { display: flex; flex-direction: column; gap: 12px; margin-top: 12px; }
+
+.overview-empty {
+  border: 1.5px dashed var(--border-strong); border-radius: var(--radius);
+  padding: 22px; text-align: center;
+}
+.overview-empty .muc-note { margin-bottom: 10px; }
+
+.overview-row {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
+  border: 1.5px solid var(--border); border-left: 4px solid var(--border-strong);
+  border-radius: var(--radius); padding: 14px 18px; background: #fff;
+}
+.overview-row.chua-bat-dau { border-left-color: #d69e2e; }
+.overview-row.dang-cham { border-left-color: #2f80c4; }
+.overview-row.du-chua-chot { border-left-color: #4f9a68; }
+.overview-row.da-chot { border-left-color: #6b4fa0; }
+
+.overview-info { display: flex; flex-direction: column; gap: 3px; }
+.overview-tiendo { font-size: 0.98rem; color: var(--text-secondary); }
+
+/*
+ * Chỉ Hội đồng thấy — báo trước Tổ đã xử lý tới đâu cho người này. Làm
+ * thành BADGE đầy màu như .nguoi-trang-thai (không phải chữ màu nhạt) —
+ * người lớn tuổi/mắt kém cần tín hiệu to, rõ, có nền, không phải chữ
+ * nhỏ chỉ khác màu (rất dễ bỏ sót).
+ */
+.overview-to-trangthai {
+  display: inline-block; align-self: flex-start; margin-top: 2px;
+  font-size: 0.98rem; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+  border: 1.5px solid transparent; white-space: nowrap;
+}
+.overview-to-trangthai.chua-bat-dau { background: #fff3cd; color: #704600; border-color: #f0d9a6; }
+.overview-to-trangthai.dang-cham { background: #dceeff; color: #0b4a7a; border-color: #b9dcff; }
+.overview-to-trangthai.du-chua-chot { background: #e8f5ec; color: #176b38; border-color: #bfe6c9; }
+.overview-to-trangthai.da-chot { background: #efe9fa; color: #4a2f82; border-color: #d7c9f2; }
+.overview-action { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+
+/* ============ Điều hướng màn hình chấm chi tiết ============ */
+
+.detail-nav {
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+  flex-wrap: wrap; margin-bottom: 16px;
+}
+
 /* ============ Danh sách "Người cần chấm" — trạng thái từng người ============ */
 
 .nguoi-summary { font-size: 1rem; font-weight: 600; color: var(--text-secondary); margin: 0; }
@@ -128,8 +215,8 @@ select:focus-visible, input:focus-visible, textarea:focus-visible {
 .nguoi-row.du-chua-chot { border-left-color: #4f9a68; }
 .nguoi-trang-thai.du-chua-chot { background: #e8f5ec; color: #176b38; }
 
-.nguoi-row.da-chot { border-left-color: #1f7a44; }
-.nguoi-trang-thai.da-chot { background: #c9ead3; color: #0f5132; }
+.nguoi-row.da-chot { border-left-color: #6b4fa0; }
+.nguoi-trang-thai.da-chot { background: #efe9fa; color: #4a2f82; }
 
 /* ============ Nút bấm — phụ / chính, không nổi hơn nghiệp vụ ============ */
 
@@ -229,6 +316,16 @@ button {
 /* MỘT CỘT — người dùng chấm tuần tự từ trên xuống, không quét zigzag. */
 .rows-grid { display: flex; flex-direction: column; gap: 12px; }
 
+/* Tiêu đề phụ chia "Nhóm cốt lõi" / "Nhóm thường xuyên" bên trong mục B —
+ * nhẹ hơn criteria-section-head (không phải ngang hàng A/B, chỉ là ranh
+ * giới bên trong 1 mục lớn). */
+.kpi-subgroup-divider {
+  display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 14px;
+  padding: 8px 14px; background: var(--bg-subtle); border-left: 4px solid var(--border-strong);
+  border-radius: 6px; font-size: 1.02rem; font-weight: 800; color: var(--text-primary);
+}
+.kpi-subgroup-divider span { font-size: 0.95rem; font-weight: 600; color: var(--text-secondary); }
+
 /* ============ Thẻ tiêu chí (CriteriaCard) ============ */
 
 /*
@@ -246,7 +343,6 @@ button {
 }
 .row-card.row-chua { background: #fffcf3; border-left-color: #d69e2e; }
 .row-card.row-da { background: #f7fcf8; border-left-color: #4f9a68; }
-.row-card.row-warn { border-left-color: #d99a2b; background: var(--warning-bg); }
 .row-card.row-invalid { background: var(--danger-bg); border-left-color: var(--danger-ink); }
 
 .row-card.row-focused {
@@ -317,8 +413,11 @@ button {
 
 .muc-note { color: var(--text-secondary); font-size: 1.02rem; margin: 0 0 10px; }
 .muc-note.warn { color: var(--warning-ink); font-weight: 700; }
+.muc-note.ok { color: var(--success-ink); font-weight: 700; }
 .loi-box { border-color: var(--danger-ink); }
 .loi-box h2 { margin-top: 0; color: var(--danger-ink); }
+
+.chot-status { margin: 14px 0 0; }
 
 /* ============ Sidebar tóm tắt ============ */
 
@@ -326,6 +425,8 @@ button {
 .sidebar-title { margin: 0 0 4px; font-size: 0.9rem; font-weight: 800; letter-spacing: 0.03em; color: var(--text-secondary); }
 .sidebar-score { font-size: 2.2rem; font-weight: 800; color: var(--primary); margin: 4px 0 12px; line-height: 1; }
 .sidebar-score span { font-size: 1.05rem; font-weight: 600; color: var(--text-secondary); }
+/* Chưa có điểm để hiện — chữ nhỏ hơn số điểm thật, tránh cạnh tranh thị giác với form nhập điểm. */
+.sidebar-score-sub { font-size: 1.6rem; font-weight: 700; color: var(--text-secondary); }
 
 .sidebar-progress { display: flex; justify-content: space-between; align-items: baseline; margin-top: 8px; font-size: 1rem; }
 .sidebar-sub { color: var(--text-secondary); }
@@ -336,7 +437,33 @@ button {
 .sidebar-row { display: flex; justify-content: space-between; font-size: 1rem; }
 .sidebar-row span { color: var(--text-secondary); }
 .sidebar-row b { font-size: 1.05rem; }
-.sidebar-actions { margin-top: 16px; display: flex; flex-direction: column; gap: 10px; }
+
+/*
+ * Bảng "công thức tính điểm tổng" cho Hiệu trưởng — mỗi thành phần hiện
+ * cả điểm thô LẪN số điểm nó thực sự đóng góp vào điểm tổng (điểm thô ×
+ * hệ số), để không ai phải tự nhân % trong đầu.
+ */
+.sidebar-contrib { gap: 12px; }
+.sidebar-contrib-head { display: flex; justify-content: space-between; align-items: baseline; font-size: 1rem; }
+.sidebar-contrib-head span { color: var(--text-secondary); }
+.sidebar-contrib-head b { font-size: 1.05rem; }
+.sidebar-contrib-sub {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-size: 0.94rem; color: var(--text-secondary); margin-top: 2px; padding-left: 6px;
+}
+.sidebar-contrib-val { font-weight: 700; color: var(--success-ink); }
+
+/*
+ * Điểm tổng KPI cuối cùng — chỉ Hiệu trưởng thấy, chỉ khi cả Tổ lẫn Hội
+ * đồng đều đã đủ điểm. Tông xanh lá (trùng màu "đã chốt"/hoàn tất trong
+ * cả app) để phân biệt rõ với "ĐIỂM HỘI ĐỒNG CHẤM" (xanh dương, chỉ 50%)
+ * ngay phía trên — đây là con số CUỐI, không phải điểm riêng của 1 lớp.
+ */
+.sidebar-final { margin-top: 18px; padding-top: 16px; border-top: 2px solid var(--border-strong); }
+.sidebar-final-title { margin: 0 0 4px; font-size: 0.9rem; font-weight: 800; letter-spacing: 0.03em; color: var(--success-ink); }
+.sidebar-final-score { font-size: 2.4rem; font-weight: 800; color: var(--success-ink); line-height: 1; }
+.sidebar-final-score span { font-size: 1.05rem; font-weight: 600; color: var(--text-secondary); }
+.sidebar-final-xeploai { margin: 6px 0 0; font-size: 1.05rem; font-weight: 700; color: var(--success-ink); }
 
 /* ============ Modal (Xem chi tiết điểm / Xác nhận chốt) ============ */
 
@@ -345,21 +472,38 @@ button {
   display: flex; align-items: flex-start; justify-content: center;
   padding: 40px 16px; z-index: 60; overflow-y: auto;
 }
+/*
+ * Modal khóa chiều cao (85vh) và tự cuộn BÊN TRONG .modal-body — page
+ * đứng yên khi modal mở. Header + subtitle sticky ở top:0 để không
+ * "mất tiêu đề, mất nút đóng" khi cuộn qua ~26 dòng tiêu chí.
+ */
 .modal-box {
   background: #fff; border-radius: var(--radius); border: 1.5px solid var(--border);
-  width: min(720px, 100%); padding: 24px;
+  width: min(720px, 100%); max-height: 85vh;
+  display: flex; flex-direction: column; overflow: hidden;
 }
-.modal-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.modal-head {
+  flex: 0 0 auto; display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; padding: 20px 24px 14px; border-bottom: 1.5px solid var(--border);
+}
 .modal-head h3 { margin: 0; font-size: 1.3rem; font-weight: 800; }
-.modal-close { background: none; border: none; font-size: 1.4rem; padding: 4px 10px; min-height: auto; color: var(--text-secondary); }
-.modal-body { font-size: 1.02rem; }
-.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; }
+.modal-subtitle { margin: 4px 0 0; font-size: 0.98rem; font-weight: 600; color: var(--text-secondary); }
+.modal-close { background: none; border: none; font-size: 1.4rem; padding: 4px 10px; min-height: auto; color: var(--text-secondary); flex: 0 0 auto; }
+/*
+ * min-height:0 là chỗ hay bị bỏ sót nhất — mặc định flex item có
+ * min-height:auto, khiến nó từ chối co nhỏ hơn nội dung bên trong (ở
+ * đây là 26 dòng) và phình to thay vì tự cuộn. Thiếu dòng này thì cả
+ * .modal-box lẫn .modal-backdrop mới là thứ bị cuộn (không phải
+ * .modal-body), kéo theo header lẫn header cột trôi mất khi cuộn.
+ */
+.modal-body { font-size: 1.02rem; padding: 20px 24px 24px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
 
-.detail-table { width: 100%; border-collapse: collapse; font-size: 1rem; }
-.detail-table th, .detail-table td { border-bottom: 1px solid var(--border); padding: 10px 8px; text-align: left; vertical-align: top; }
-.detail-table th { color: var(--text-secondary); font-size: 0.92rem; }
-.detail-ma { font-weight: 700; color: var(--primary); white-space: nowrap; }
-.detail-diem { font-weight: 700; text-align: center; white-space: nowrap; }
+/*
+ * Modal "Chi tiết điểm" dùng lại NGUYÊN .row-card/.criteria-section của
+ * form chấm chính (xem sidebarSummary.ts) — không có CSS riêng ở đây,
+ * cố ý để tránh lệch giao diện giữa 2 nơi hiển thị cùng 1 loại dữ liệu.
+ */
 
 /* ============ Nhận diện / lỗi cấu hình ============ */
 

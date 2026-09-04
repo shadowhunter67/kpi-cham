@@ -54,11 +54,20 @@ export function fmt(n: number | null | undefined): string {
  * không tạo scroll lồng trong scroll). Đóng bằng nút X, bấm ra ngoài,
  * hoặc phím Esc.
  */
-export function openModal(title: string, body: Node, opts?: { wide?: boolean }): { close: () => void } {
+export function openModal(
+  title: string,
+  body: Node,
+  opts?: { wide?: boolean; subtitle?: string },
+): { close: () => void } {
+  const trigger = document.activeElement as HTMLElement | null;
+
   const backdrop = h("div", { class: "modal-backdrop" },
     h("div", { class: "modal-box", style: opts?.wide ? "width:min(820px,100%)" : "" },
       h("div", { class: "modal-head" },
-        h("h3", {}, title),
+        h("div", {},
+          h("h3", {}, title),
+          opts?.subtitle && h("p", { class: "modal-subtitle" }, opts.subtitle),
+        ),
         h("button", { class: "modal-close", type: "button", "aria-label": "Đóng" }, "✕"),
       ),
       h("div", { class: "modal-body" }, body),
@@ -68,13 +77,27 @@ export function openModal(title: string, body: Node, opts?: { wide?: boolean }):
   const close = () => {
     backdrop.remove();
     document.removeEventListener("keydown", onKey);
+    trigger?.focus();
   };
-  const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); };
+
+  const focusablesSel = 'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  const box = backdrop.querySelector(".modal-box") as HTMLElement;
+  const trapTab = (e: KeyboardEvent) => {
+    if (e.key !== "Tab") return;
+    const focusables = Array.from(box.querySelectorAll<HTMLElement>(focusablesSel));
+    if (focusables.length === 0) return;
+    const first = focusables[0];
+    const last = focusables[focusables.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  };
+  const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close(); else trapTab(e); };
 
   backdrop.addEventListener("click", (e) => { if (e.target === backdrop) close(); });
   backdrop.querySelector(".modal-close")!.addEventListener("click", close);
   document.addEventListener("keydown", onKey);
 
   document.body.appendChild(backdrop);
+  (backdrop.querySelector(".modal-close") as HTMLElement)?.focus();
   return { close };
 }

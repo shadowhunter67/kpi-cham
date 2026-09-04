@@ -14,6 +14,9 @@ export interface Nguoi {
   daCham: number;
   tongTieuChi: number;
   daChot: boolean;
+  /** Chỉ có khi đang xem với vai trò Hội đồng — tiến độ/trạng thái CHẤM CỦA TỔ đối với người này. */
+  toDaCham?: number;
+  toDaChot?: boolean;
 }
 
 export interface KhoiTaoResp {
