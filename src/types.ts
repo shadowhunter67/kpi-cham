@@ -11,6 +11,9 @@ export interface Nguoi {
   hoTen: string;
   chucDanh: string;
   to: string;
+  daCham: number;
+  tongTieuChi: number;
+  daChot: boolean;
 }
 
 export interface KhoiTaoResp {
@@ -40,6 +43,7 @@ export interface PhieuResp {
   quyen: { laNguoiChamTo: boolean; laHieuTruong: boolean; hoiDongChoTo: boolean };
   canEdit: { to: boolean; hoiDong: boolean };
   trangThai: { to: TrangThai; hoiDong: TrangThai };
+  chotLuc: { to: string; hoiDong: string };
   rows: DongPhieu[];
   nhanXet: { to: string; hoiDong: string };
   tuCham: {

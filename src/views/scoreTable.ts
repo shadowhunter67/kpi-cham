@@ -61,22 +61,32 @@ export function renderScoreTable(
     ));
 
     if (lane && daChot) {
+      const chotLuc = lane === "hoiDong" ? phieu.chotLuc.hoiDong : phieu.chotLuc.to;
       const ketQua = h("div", { class: "save-feedback" });
-      const btnMo = h("button", { class: "btn-ghost", type: "button" }, "Mở lại phiếu") as HTMLButtonElement;
+      const btnMo = h("button", { class: "btn-ghost", type: "button" }, "Mở khóa để chỉnh sửa") as HTMLButtonElement;
       btnMo.addEventListener("click", () => {
         btnMo.disabled = true;
         ketQua.className = "save-feedback";
-        ketQua.textContent = "Đang mở lại…";
+        ketQua.textContent = "Đang mở khóa…";
         const fn = lane === "hoiDong" ? api.moLaiHoiDong : api.moLaiTo;
         fn({ hoTen: phieu.hoTen, chucDanh: phieu.chucDanh, to: phieu.to })
-          .then(() => { ketQua.className = "save-feedback ok"; ketQua.textContent = "Đã mở lại."; setTimeout(onSaved, 500); })
+          .then(() => { ketQua.className = "save-feedback ok"; ketQua.textContent = "✓ Đã mở khóa."; setTimeout(onSaved, 500); })
           .catch((err: unknown) => {
             btnMo.disabled = false;
             ketQua.className = "save-feedback loi";
             ketQua.textContent = err instanceof ApiError ? err.message : String(err);
           });
       });
-      wrap.append(h("div", { class: "actions" }, btnMo, ketQua));
+      wrap.append(
+        h("div", { class: "finalize-block" },
+          h("div", { class: "chot-block" },
+            h("p", { class: "chot-title" }, "🔒 ĐÃ CHỐT"),
+            h("p", {}, "Kết quả đánh giá đã được khóa, không thể chỉnh sửa điểm/nhận xét."),
+            chotLuc && h("p", { class: "chot-luc" }, `Chốt lúc ${chotLuc}`),
+          ),
+        ),
+        h("div", { class: "actions" }, btnMo, ketQua),
+      );
     }
     return { el: wrap, progress: null };
   }
@@ -93,11 +103,15 @@ export function renderScoreTable(
   };
 
   const progress = renderProgress(() => nhayToiTieuChiChuaCham());
+  const btnLuu = h("button", { class: "btn-secondary", type: "button" }, "Lưu nháp") as HTMLButtonElement;
 
   const capNhatTienDo = () => {
     const done = phieu.rows.filter((r) => layGiaTri(r.ma) != null).length;
     progress.update(done, phieu.rows.length);
     onProgress?.(done, phieu.rows.length);
+    // Đã nhập đủ (dù chưa lưu) → đổi nhãn nút để phản ánh đây là sửa
+    // trên 1 phiếu đã hoàn chỉnh, không phải nhập lần đầu.
+    btnLuu.textContent = done >= phieu.rows.length ? "Lưu thay đổi" : "Lưu nháp";
   };
 
   function nhayToiTieuChiChuaCham() {
@@ -155,7 +169,7 @@ export function renderScoreTable(
       } else if (trangThai === "da") {
         card.classList.add("row-da");
         statusBadge.classList.add("da");
-        statusBadge.textContent = "✓ Đã chấm";
+        statusBadge.textContent = "✓ Đã nhập";
       } else {
         card.classList.add("row-chua");
         statusBadge.classList.add("chua");
@@ -221,8 +235,6 @@ export function renderScoreTable(
   }
 
   const finalizeBox = h("div", { class: "finalize-block" });
-
-  const btnLuu = h("button", { class: "btn-secondary", type: "button" }, "Lưu nháp") as HTMLButtonElement;
   const btnChot = h("button", { class: "btn-primary", type: "button" }, "Chốt & khóa") as HTMLButtonElement;
 
   const chay = (fn: () => Promise<unknown>, okMsg: string) => {
@@ -234,7 +246,7 @@ export function renderScoreTable(
       .then(() => {
         feedback.className = "save-feedback ok";
         const gio = new Date().toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" });
-        feedback.textContent = `${okMsg} Đã lưu lúc ${gio}.`;
+        feedback.textContent = `${okMsg} lúc ${gio}.`;
         setTimeout(onSaved, 700);
       })
       .catch((err: unknown) => {
@@ -272,7 +284,11 @@ export function renderScoreTable(
   btnLuu.addEventListener("click", () => {
     const p = payload();
     if (!p) return;
-    chay(() => (lane === "hoiDong" ? api.luuDiemHoiDong(p) : api.luuDiemTo(p)), "Đã lưu nháp.");
+    const dayDu = p.diem.length >= phieu.rows.length;
+    chay(
+      () => (lane === "hoiDong" ? api.luuDiemHoiDong(p) : api.luuDiemTo(p)),
+      dayDu ? "✓ Đã lưu thay đổi" : "✓ Đã lưu",
+    );
   });
 
   btnChot.addEventListener("click", () => {
@@ -314,7 +330,7 @@ export function renderScoreTable(
     btnHuy.addEventListener("click", modal.close);
     btnXacNhan.addEventListener("click", () => {
       modal.close();
-      chay(() => (lane === "hoiDong" ? api.chotHoiDong(p) : api.chotTo(p)), "Đã chốt & khóa.");
+      chay(() => (lane === "hoiDong" ? api.chotHoiDong(p) : api.chotTo(p)), "✓ Đã chốt & khóa");
     });
   });
 
