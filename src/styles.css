@@ -394,6 +394,7 @@ button {
 .nx-field textarea { min-height: 150px; }
 
 .readonly-block { background: var(--bg-subtle); border: 1.5px solid var(--border); border-radius: 8px; padding: 14px 16px; margin: 10px 0; font-size: 1.02rem; }
+.btn-chep-nx { margin-top: 10px; font-size: 0.95rem; padding: 6px 12px; }
 
 /* ============ Hành động Lưu / Chốt ============ */
 

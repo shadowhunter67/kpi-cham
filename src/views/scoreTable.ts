@@ -275,9 +275,18 @@ export function renderScoreTable(
   nxInput.addEventListener("input", setDirty);
 
   // Hội đồng cần thấy Tổ đã nhận xét gì trước khi tự viết nhận xét của
-  // mình — hiện làm dòng tham khảo chỉ-đọc, không phải ô nhập.
+  // mình — hiện làm dòng tham khảo chỉ-đọc, kèm nút chép sang ô nhập.
+  const btnChepNxTo = h("button", { class: "btn-ghost btn-chep-nx", type: "button" },
+    "Chép sang nhận xét Hội đồng") as HTMLButtonElement;
+  btnChepNxTo.addEventListener("click", () => {
+    nxInput.value = phieu.nhanXet.to;
+    nxInput.dispatchEvent(new Event("input"));
+    nxInput.focus();
+  });
   const nxCuaTo = lane === "hoiDong" && phieu.nhanXet.to
-    ? h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét của Tổ: "), phieu.nhanXet.to)
+    ? h("div", { class: "readonly-block" },
+        h("div", {}, h("b", {}, "Nhận xét của Tổ: "), phieu.nhanXet.to),
+        btnChepNxTo)
     : null;
 
   const feedback = h("span", { class: "save-feedback" });
