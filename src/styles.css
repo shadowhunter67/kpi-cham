@@ -270,6 +270,12 @@ button {
 }
 .sticky-eval-bar strong { font-size: 1.02rem; }
 .sticky-eval-bar span { color: var(--text-secondary); font-size: 1rem; }
+.sticky-eval-right { display: flex; align-items: baseline; gap: 6px 14px; flex-wrap: wrap; }
+.sticky-eval-bar .sticky-eval-score:empty { display: none; }
+.sticky-eval-bar .sticky-eval-score {
+  color: var(--success-ink); font-weight: 800;
+  padding-left: 14px; border-left: 1.5px solid var(--border);
+}
 
 .row-card, #person-header, .kpi-sidebar { scroll-margin-top: 60px; }
 

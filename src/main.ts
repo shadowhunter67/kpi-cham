@@ -6,6 +6,7 @@ import { api, ApiError } from "./api";
 import { renderOverview } from "./views/overview";
 import { renderScoreTable, laneCua, diemHienCo, type ScoreTableHandle } from "./views/scoreTable";
 import { renderSidebarSummary } from "./views/sidebarSummary";
+import { tongHop } from "./scoring";
 import { renderPersonHeader } from "./views/personHeader";
 import { trangThaiCuaNguoi, type TrangThaiNguoi } from "./views/nguoiTrangThai";
 import type { KhoiTaoResp, Nguoi, PhieuResp, VaiTro } from "./types";
@@ -216,10 +217,21 @@ function renderManHinhChiTiet(trang: TrangThaiTaiPhieu) {
   // khỏi header, không cần JS tính toán khoảng trống bù (né lỗi
   // scroll-anchoring của Chrome khi đổi layout giữa lúc đang cuộn).
   const stickyProgress = h("span", {}, `Đã chấm ${daChamBanDau} / ${tongTieuChi} tiêu chí`);
+  const stickyScore = h("span", { class: "sticky-eval-score" });
   const stickyBar = h("div", { class: "sticky-eval-bar" },
     h("strong", {}, `${phieu.hoTen} · Kỳ ${phieu.ky}`),
-    stickyProgress,
+    h("span", { class: "sticky-eval-right" }, stickyProgress, stickyScore),
   );
+
+  /** Điểm tổng KPI + xếp loại trên thanh sticky — hiện ngay khi đủ dữ liệu
+   * cả 2 lớp (kể cả điểm đang gõ chưa Lưu, khi đó thêm chữ "tạm tính"). */
+  const capNhatStickyScore = (nguon: PhieuResp, tamTinh: boolean) => {
+    const t = tongHop(nguon);
+    if (t.kpiCuoi == null) { stickyScore.textContent = ""; return; }
+    stickyScore.textContent =
+      `Điểm KPI${tamTinh ? " tạm tính" : ""}: ${t.kpiCuoi} / 100 · ${t.xepLoai ?? ""}`;
+  };
+  capNhatStickyScore(phieu, false);
 
   const personHeader = renderPersonHeader(phieu);
   const sidebarWrap = h("div", { class: "kpi-sidebar" }, renderSidebarSummary(phieu));
@@ -230,11 +242,14 @@ function renderManHinhChiTiet(trang: TrangThaiTaiPhieu) {
     // dữ liệu vừa được scoreTable cập nhật tại chỗ (xem ghi chú trong
     // scoreTable.ts) để tránh mất dữ liệu do đọc-ngay-sau-ghi bị trễ.
     sidebarWrap.replaceChildren(renderSidebarSummary(phieuMoi));
+    capNhatStickyScore(phieuMoi, false);
   };
   const onLive = (phieuTamTinh: PhieuResp) => {
-    // Điểm đang gõ (chưa Lưu) — vẽ lại sidebar với nhãn "tạm tính" để
-    // người chấm thấy ngay điểm tổng + xếp loại khi vừa nhập đủ 26 tiêu chí.
+    // Điểm đang gõ (chưa Lưu) — vẽ lại sidebar + thanh sticky với nhãn
+    // "tạm tính" để người chấm thấy ngay điểm tổng + xếp loại khi vừa
+    // nhập đủ 26 tiêu chí.
     sidebarWrap.replaceChildren(renderSidebarSummary(phieuTamTinh, true));
+    capNhatStickyScore(phieuTamTinh, true);
   };
   const handle = renderScoreTable(phieu, onSaved, (done, total) => {
     stickyProgress.textContent = `Đã chấm ${done} / ${total} tiêu chí`;
