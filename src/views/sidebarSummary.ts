@@ -14,7 +14,12 @@ import type { PhieuResp } from "../types";
  * toàn bộ 26 tiêu chí kèm dòng "Điểm cá nhân tự chấm"/"Tổ đã chấm" tham
  * khảo trên từng card rồi, thêm modal chỉ lặp lại y hệt nội dung đó.
  */
-export function renderSidebarSummary(phieu: PhieuResp): HTMLElement {
+export function renderSidebarSummary(
+  phieu: PhieuResp,
+  /** true khi điểm truyền vào là giá trị đang gõ dở (chưa Lưu) — thêm nhãn
+   * "tạm tính" để không nhầm với kết quả đã ghi nhận. */
+  tamTinh = false,
+): HTMLElement {
   const t = tongHop(phieu);
   const lane = laneCua(phieu);
 
@@ -46,7 +51,7 @@ export function renderSidebarSummary(phieu: PhieuResp): HTMLElement {
   const con = total - done;
 
   return h("aside", { class: "card sidebar-card" },
-    h("p", { class: "sidebar-title" }, chinh.nhan),
+    h("p", { class: "sidebar-title" }, chinh.nhan + (tamTinh ? " (tạm tính)" : "")),
     chinh.chua
       ? h("div", { class: "sidebar-score sidebar-score-sub" }, "Chưa đủ dữ liệu")
       : h("div", { class: "sidebar-score" }, fmt(chinh.gia), h("span", {}, " / 100")),
@@ -78,9 +83,10 @@ export function renderSidebarSummary(phieu: PhieuResp): HTMLElement {
     // xem tongHop() trong scoring.ts) nên tự nó đã bao gồm điều kiện "Tổ
     // phải chấm xong" mà không cần kiểm tra riêng.
     lane === "hoiDong" && t.kpiCuoi != null && h("div", { class: "sidebar-final" },
-      h("p", { class: "sidebar-final-title" }, "ĐIỂM TỔNG KPI"),
+      h("p", { class: "sidebar-final-title" }, tamTinh ? "ĐIỂM TỔNG KPI (TẠM TÍNH)" : "ĐIỂM TỔNG KPI"),
       h("div", { class: "sidebar-final-score" }, String(t.kpiCuoi), h("span", {}, " / 100")),
       t.xepLoai && h("p", { class: "sidebar-final-xeploai" }, t.xepLoai),
+      tamTinh && h("p", { class: "sidebar-final-note" }, "Bấm “Lưu thay đổi” để ghi nhận."),
     ),
   );
 }

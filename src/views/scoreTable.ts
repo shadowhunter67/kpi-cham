@@ -49,6 +49,10 @@ export function renderScoreTable(
    * server (tránh nguy cơ đọc-ngay-sau-ghi bị trễ khiến trông như mất dữ
    * liệu), chỉ để nơi gọi (sidebar) tự vẽ lại từ `phieu` đã cập nhật tại chỗ. */
   onDraftSaved?: (phieu: PhieuResp) => void,
+  /** Gọi mỗi lần người dùng gõ/sửa 1 ô điểm (trước khi Lưu) — truyền 1
+   * bản sao `phieu` với điểm của lớp đang chấm ghi đè bằng giá trị đang
+   * nhập, để sidebar hiển thị điểm tổng + xếp loại "tạm tính" ngay. */
+  onLive?: (phieuTamTinh: PhieuResp) => void,
 ): ScoreTableHandle {
   const lane = laneCua(phieu);
   const daChot = lane === "hoiDong"
@@ -122,6 +126,19 @@ export function renderScoreTable(
     if (raw === undefined || raw === "") return null;
     const v = Number(raw);
     return Number.isFinite(v) ? v : null;
+  };
+
+  /** Bản sao `phieu` với điểm của lớp đang chấm = giá trị đang gõ (ô sai/để
+   * trống coi như chưa chấm) — dùng cho sidebar "tạm tính" trước khi Lưu. */
+  const phieuTamTinh = (): PhieuResp => {
+    const rows = phieu.rows.map((r) => {
+      const v = layGiaTri(r.ma);
+      const ok = v != null && v >= 0 && v <= r.diemToiDa;
+      return lane === "hoiDong"
+        ? { ...r, diemHoiDong: ok ? v : null }
+        : { ...r, diemTo: ok ? v : null };
+    });
+    return { ...phieu, rows };
   };
 
   const progress = renderProgress(() => nhayToiTieuChiChuaCham());
@@ -269,6 +286,7 @@ export function renderScoreTable(
     dirty = true;
     feedback.className = "save-feedback dirty";
     feedback.textContent = "Có thay đổi chưa lưu.";
+    onLive?.(phieuTamTinh());
   }
 
   /**

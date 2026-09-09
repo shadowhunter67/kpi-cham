@@ -464,6 +464,7 @@ button {
 .sidebar-final-score { font-size: 2.4rem; font-weight: 800; color: var(--success-ink); line-height: 1; }
 .sidebar-final-score span { font-size: 1.05rem; font-weight: 600; color: var(--text-secondary); }
 .sidebar-final-xeploai { margin: 6px 0 0; font-size: 1.05rem; font-weight: 700; color: var(--success-ink); }
+.sidebar-final-note { margin: 8px 0 0; font-size: 0.85rem; font-weight: 600; color: var(--text-secondary); }
 
 /* ============ Modal (Xem chi tiết điểm / Xác nhận chốt) ============ */
 

@@ -231,9 +231,14 @@ function renderManHinhChiTiet(trang: TrangThaiTaiPhieu) {
     // scoreTable.ts) để tránh mất dữ liệu do đọc-ngay-sau-ghi bị trễ.
     sidebarWrap.replaceChildren(renderSidebarSummary(phieuMoi));
   };
+  const onLive = (phieuTamTinh: PhieuResp) => {
+    // Điểm đang gõ (chưa Lưu) — vẽ lại sidebar với nhãn "tạm tính" để
+    // người chấm thấy ngay điểm tổng + xếp loại khi vừa nhập đủ 26 tiêu chí.
+    sidebarWrap.replaceChildren(renderSidebarSummary(phieuTamTinh, true));
+  };
   const handle = renderScoreTable(phieu, onSaved, (done, total) => {
     stickyProgress.textContent = `Đã chấm ${done} / ${total} tiêu chí`;
-  }, onDraftSaved);
+  }, onDraftSaved, onLive);
   scoreHandle = handle;
 
   const ke = nguoiTiepTheoUuTien();
