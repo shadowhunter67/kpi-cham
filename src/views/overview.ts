@@ -8,7 +8,7 @@ import type { Nguoi } from "../types";
  * sách trạng thái rõ ràng — KHÔNG biểu đồ (không pie/donut). 4 ô trạng
  * thái đếm số lượng, bấm vào để lọc danh sách bên dưới.
  */
-export function renderOverview(danhSach: Nguoi[], onPick: (n: Nguoi) => void): HTMLElement {
+export function renderOverview(danhSach: Nguoi[], onPick: (n: Nguoi) => void, kyMacDinh?: string): HTMLElement {
   const cacTo = [...new Set(danhSach.map((n) => n.to))].sort();
   const cacCd = [...new Set(danhSach.map((n) => n.chucDanh))].sort();
   const coLocPhu = danhSach.length > 12;
@@ -78,6 +78,9 @@ export function renderOverview(danhSach: Nguoi[], onPick: (n: Nguoi) => void): H
           h("span", { class: "nguoi-ten" }, n.hoTen),
           h("span", { class: "nguoi-chuc-danh" }, coLocPhu ? `${n.chucDanh} · ${n.to}` : n.chucDanh),
           h("span", { class: "overview-tiendo" }, `Tiến độ: ${n.daCham} / ${n.tongTieuChi} tiêu chí`),
+          // Người tồn đọng từ kỳ cũ gộp vào (Tổ được bật "CHO PHÉP CHẤM
+          // LẠI" ở mục F) — báo rõ kỳ để khỏi nhầm tưởng đang ở kỳ hiện tại.
+          kyMacDinh && n.ky !== kyMacDinh && h("span", { class: "overview-ky-bu" }, `Chấm bù kỳ ${n.ky}`),
           // Chỉ Hội đồng thấy dòng này (n.toDaChot chỉ được backend trả khi
           // đang xem với vai trò Hội đồng) — báo trước Tổ đã xử lý tới đâu,
           // khỏi phải bấm vào mới biết vì sao phiếu đang bị khoá chỉ-xem.

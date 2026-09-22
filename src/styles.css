@@ -179,6 +179,13 @@ select:focus-visible, input:focus-visible, textarea:focus-visible {
 .overview-to-trangthai.da-chot { background: #efe9fa; color: #4a2f82; border-color: #d7c9f2; }
 .overview-action { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 
+/* Người tồn đọng gộp từ kỳ cũ (Tổ được bật "CHO PHÉP CHẤM LẠI") — báo rõ kỳ để khỏi nhầm kỳ hiện tại. */
+.overview-ky-bu {
+  display: inline-block; align-self: flex-start; margin-top: 2px;
+  font-size: 0.98rem; font-weight: 700; padding: 5px 12px; border-radius: 999px;
+  background: #fdeaea; color: #8a2222; border: 1.5px solid #f3c6c6; white-space: nowrap;
+}
+
 /* ============ Điều hướng màn hình chấm chi tiết ============ */
 
 .detail-nav {

@@ -12,6 +12,9 @@ export interface Nguoi {
   hoTen: string;
   chucDanh: string;
   to: string;
+  /** Kỳ của người này — thường trùng KhoiTaoResp.ky, TRỪ người tồn đọng
+   * kỳ cũ gộp thêm vào (Tổ được bật "CHO PHÉP CHẤM LẠI" ở mục F). */
+  ky: string;
   daCham: number;
   tongTieuChi: number;
   daChot: boolean;

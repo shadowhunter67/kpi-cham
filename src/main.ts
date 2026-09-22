@@ -196,7 +196,7 @@ function renderTongQuan() {
       ? h("div", { class: "card muc-note warn" }, "Chưa có ai nộp Form trong kỳ này (hoặc chưa tới kỳ chấm).")
       : h("div", { class: "card" },
         h("h2", { class: "field-label" }, "Tổng quan chấm KPI"),
-        renderOverview(phien.nguoiDuocCham, (n) => void moPhieuChiTiet(n)),
+        renderOverview(phien.nguoiDuocCham, (n) => void moPhieuChiTiet(n), phien.ky),
       ),
   ));
 }
@@ -317,7 +317,7 @@ async function moPhieuChiTiet(n: Nguoi) {
   renderManHinhChiTiet({ kind: "loading" });
 
   try {
-    const phieu = await api.layPhieu(n.hoTen, n.chucDanh, n.to, phien?.ky);
+    const phieu = await api.layPhieu(n.hoTen, n.chucDanh, n.to, n.ky);
     renderManHinhChiTiet({ kind: "ready", phieu });
   } catch (err) {
     const msg = err instanceof ApiError ? err.message : String(err);
