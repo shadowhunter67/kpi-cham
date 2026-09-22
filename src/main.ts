@@ -18,7 +18,7 @@ let scoreHandle: ScoreTableHandle | null = null;
 
 function moTaVaiTro(v: VaiTro): string {
   const phan: string[] = [];
-  if (v.to) phan.push(`Tổ "${v.to}" — Tổ ${v.toChucVu}`);
+  if (v.to) phan.push(`${v.to} — Tổ ${v.toChucVu}`);
   if (v.hoiDong) phan.push("Hội đồng");
   return phan.join(" · ") || "Chưa có vai trò";
 }
