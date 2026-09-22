@@ -1,10 +1,11 @@
-export type VaiTroHoiDong = "hiệu trưởng" | "thành viên";
 export type ToChucVu = "trưởng" | "phó";
 
 export interface VaiTro {
   to: string | null;
   toChucVu: ToChucVu | null;
-  hoiDong: VaiTroHoiDong | null;
+  /** true nếu email có trong mục G (CẤU HÌNH HỆ THỐNG) — mọi thành viên
+   * Hội đồng đều có quyền chốt điểm như nhau, không còn phân biệt vai trò. */
+  hoiDong: boolean | null;
 }
 
 export interface Nguoi {
@@ -19,10 +20,19 @@ export interface Nguoi {
   toDaChot?: boolean;
 }
 
+export interface KyHoiDong {
+  ky: string;
+  /** true nếu mọi người có dữ liệu tự chấm trong kỳ này đã được Hội đồng chốt điểm. */
+  xong: boolean;
+}
+
 export interface KhoiTaoResp {
   email: string;
   ky: string;
   vaiTro: VaiTro;
+  /** Chỉ có khi đang xem với vai trò Hội đồng — danh sách kỳ có dữ liệu
+   * trong khoảng cấu hình (mục H), sắp xếp cũ nhất trước, để chọn kỳ khác kỳ mặc định. */
+  dsKyHoiDong?: KyHoiDong[];
   nguoiDuocCham: Nguoi[];
 }
 

@@ -91,7 +91,7 @@ export function renderScoreTable(
         ketQua.className = "save-feedback";
         ketQua.textContent = "Đang mở khóa…";
         const fn = lane === "hoiDong" ? api.moLaiHoiDong : api.moLaiTo;
-        fn({ hoTen: phieu.hoTen, chucDanh: phieu.chucDanh, to: phieu.to })
+        fn({ hoTen: phieu.hoTen, chucDanh: phieu.chucDanh, to: phieu.to, ky: phieu.ky })
           .then(() => { ketQua.className = "save-feedback ok"; ketQua.textContent = "✓ Đã mở khóa."; setTimeout(onSaved, 500); })
           .catch((err: unknown) => {
             btnMo.disabled = false;
@@ -378,7 +378,7 @@ export function renderScoreTable(
   const payload = () => {
     const diem = thuThapDiemHopLe();
     if (!diem) return null;
-    return { hoTen: phieu.hoTen, chucDanh: phieu.chucDanh, to: phieu.to, diem, nhanXet: nxInput.value };
+    return { hoTen: phieu.hoTen, chucDanh: phieu.chucDanh, to: phieu.to, diem, nhanXet: nxInput.value, ky: phieu.ky };
   };
 
   btnLuu.addEventListener("click", () => {

@@ -48,14 +48,18 @@ type LuuPayload = {
   to: string;
   diem: DiemItem[];
   nhanXet: string;
+  /** Chỉ có ý nghĩa với action *HoiDong — Tổ luôn dùng kỳ hiện tại, bỏ qua field này. */
+  ky?: string;
 };
-type NguoiPayload = { hoTen: string; chucDanh: string; to: string };
+type NguoiPayload = { hoTen: string; chucDanh: string; to: string; ky?: string };
 
 export const api = {
-  khoiTao: () => post<KhoiTaoResp>("khoiTao"),
+  /** `ky` chỉ có tác dụng khi đang là Hội đồng (Tổ luôn dùng kỳ hiện tại) —
+   * bỏ trống để server tự chọn kỳ mặc định (xa nhất chưa chấm xong). */
+  khoiTao: (ky?: string) => post<KhoiTaoResp>("khoiTao", ky ? { ky } : {}),
 
-  layPhieu: (hoTen: string, chucDanh: string, to: string) =>
-    post<PhieuResp>("layPhieu", { hoTen, chucDanh, to }),
+  layPhieu: (hoTen: string, chucDanh: string, to: string, ky?: string) =>
+    post<PhieuResp>("layPhieu", { hoTen, chucDanh, to, ky }),
 
   luuDiemTo: (p: LuuPayload) => post<{ ok: true }>("luuDiemTo", p),
   chotTo: (p: LuuPayload) => post<{ ok: true }>("chotTo", p),

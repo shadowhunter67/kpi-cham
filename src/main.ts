@@ -121,16 +121,30 @@ function dieuHuongAnToan(diChuyen: () => void) {
   });
 }
 
-/** Quay lại Tổng quan — tải lại danh sách để phản ánh đúng tiến độ mới nhất sau khi chấm. */
+/** Quay lại Tổng quan — tải lại danh sách để phản ánh đúng tiến độ mới nhất sau khi chấm.
+ * Giữ đúng kỳ đang xem (quan trọng với Hội đồng) — không để nhảy sang kỳ mặc định khác. */
 async function quayLaiTongQuan() {
   dangChon = null;
   scoreHandle = null;
   renderTongQuan();
   try {
-    phien = await api.khoiTao();
+    phien = await api.khoiTao(phien?.ky);
     renderTongQuan();
   } catch {
     // Giữ nguyên dữ liệu cũ nếu tải lại lỗi — không chặn người dùng ở màn hình tổng quan.
+  }
+}
+
+/** Hội đồng đổi kỳ đang xem qua dropdown — tải lại danh sách người cần chấm của kỳ mới. */
+async function doiKy(kyMoi: string) {
+  dangChon = null;
+  scoreHandle = null;
+  try {
+    phien = await api.khoiTao(kyMoi);
+    renderTongQuan();
+  } catch (err) {
+    const msg = err instanceof ApiError ? err.message : String(err);
+    mount(screen(h("div", { class: "card loi-box" }, h("p", {}, msg))));
   }
 }
 
@@ -152,6 +166,21 @@ function nguoiTiepTheoUuTien(): Nguoi | null {
   return null;
 }
 
+function renderKyBlock() {
+  if (!phien) return null;
+  const ds = phien.dsKyHoiDong;
+  if (!phien.vaiTro.hoiDong || !ds || ds.length <= 1) {
+    return h("div", { class: "ident-ky" }, `Kỳ đánh giá: ${phien.ky}`);
+  }
+
+  const select = h("select", { class: "ky-select" },
+    ...ds.map((k) => h("option", { value: k.ky, selected: k.ky === phien!.ky }, `Kỳ ${k.ky}${k.xong ? " — đã xong" : ""}`)),
+  ) as HTMLSelectElement;
+  select.addEventListener("change", () => void doiKy(select.value));
+
+  return h("div", { class: "ident-ky" }, "Kỳ đánh giá: ", select);
+}
+
 function renderTongQuan() {
   if (!phien) return;
   mount(screen(
@@ -159,7 +188,7 @@ function renderTongQuan() {
       h("div", { class: "ident-info" },
         h("div", { class: "ident-email" }, phien.email),
         h("div", { class: "ident-role" }, moTaVaiTro(phien.vaiTro)),
-        h("div", { class: "ident-ky" }, `Kỳ đánh giá: ${phien.ky}`),
+        renderKyBlock(),
       ),
       h("button", { class: "btn-ghost btn-logout", type: "button", onclick: dangXuat }, "Đăng xuất"),
     ),
@@ -288,7 +317,7 @@ async function moPhieuChiTiet(n: Nguoi) {
   renderManHinhChiTiet({ kind: "loading" });
 
   try {
-    const phieu = await api.layPhieu(n.hoTen, n.chucDanh, n.to);
+    const phieu = await api.layPhieu(n.hoTen, n.chucDanh, n.to, phien?.ky);
     renderManHinhChiTiet({ kind: "ready", phieu });
   } catch (err) {
     const msg = err instanceof ApiError ? err.message : String(err);
