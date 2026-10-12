@@ -44,13 +44,39 @@ function showConfigError() {
   ));
 }
 
+/** Biểu tượng nhỏ (mũ cử nhân) — SVG tĩnh, không phụ thuộc ảnh ngoài. */
+const LOGO_SVG =
+  '<svg viewBox="0 0 48 48" width="40" height="40" aria-hidden="true" focusable="false">' +
+  '<polygon points="24,11 43,20 24,29 5,20" fill="#0B5EA8"/>' +
+  '<path d="M13 26v7c0 2.6 5.1 5 11 5s11-2.4 11-5v-7l-11 5.2z" fill="#0B5EA8" fill-opacity="0.85"/>' +
+  '<path d="M41 21.5v10" stroke="#0B5EA8" stroke-width="2.4" stroke-linecap="round" fill="none"/>' +
+  "</svg>";
+
+/** Trang đăng nhập: bố cục riêng (căn giữa, một thẻ đăng nhập gọn), các màn hình khác vẫn dùng screen(). */
 function showSignIn() {
-  const btnBox = h("div", { class: "signin-box" });
-  mount(screen(
-    h("div", { class: "card" },
-      h("p", {}, "Đăng nhập bằng tài khoản Google đã được cấp quyền chấm điểm."),
-      btnBox,
+  const logo = h("span", { class: "login-logo" });
+  logo.innerHTML = LOGO_SVG;
+  const btnBox = h("div", { class: "login-gsi" });
+
+  mount(h("div", { class: "login-page" },
+    h("main", { class: "login-main" },
+      h("header", { class: "login-head" },
+        logo,
+        h("h1", {}, "Chấm điểm KPI"),
+        h("p", { class: "login-school" }, "Trường TH&THCS Chu Văn An"),
+        h("p", { class: "login-place" }, "Xã Ea Drông, tỉnh Đắk Lắk"),
+      ),
+      h("section", { class: "login-card", "aria-labelledby": "login-title" },
+        h("h2", { id: "login-title" }, "Đăng nhập hệ thống"),
+        h("p", { class: "login-desc" },
+          "Sử dụng tài khoản Google đã được nhà trường cấp quyền để truy cập hệ thống chấm điểm KPI."),
+        btnBox,
+        h("p", { class: "login-hint" }, "Chỉ tài khoản đã được phân quyền mới có thể truy cập hệ thống."),
+        h("p", { class: "login-support" },
+          "Nếu không đăng nhập được, vui lòng liên hệ quản trị viên nhà trường."),
+      ),
     ),
+    h("footer", { class: "login-foot" }, "Hệ thống chấm điểm KPI nội bộ · Trường TH&THCS Chu Văn An"),
   ));
   renderSignInButton(btnBox);
 }

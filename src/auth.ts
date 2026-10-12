@@ -62,6 +62,8 @@ export function renderSignInButton(container: HTMLElement): void {
     size: "large",
     text: "signin_with",
     locale: "vi",
+    // Nút chính thức của Google: chỉ chỉnh chiều rộng (200–400px), vừa khung đăng nhập, không tràn trên điện thoại.
+    width: Math.max(200, Math.min(320, container.clientWidth || 320)),
   });
   window.google.accounts.id.prompt();
 }
