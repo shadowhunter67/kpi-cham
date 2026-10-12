@@ -18,6 +18,12 @@ export function diemHienCo(lane: Lane, r: DongPhieu): number | null {
   return lane === "hoiDong" ? r.diemHoiDong : r.diemTo;
 }
 
+/** Điểm gợi ý lấy y nguyên từ lớp liền trước: Tổ ← cá nhân tự chấm, Hội đồng ← Tổ chấm (đã chốt). */
+export function diemGoiY(lane: Lane, r: DongPhieu): number | null {
+  const v = lane === "hoiDong" ? r.diemTo : lane === "to" ? r.diemTuCham : null;
+  return v != null && Number.isFinite(v) && v >= 0 && v <= r.diemToiDa ? v : null;
+}
+
 /** "5 / 5" nếu đã có điểm, "—" nếu chưa — không bắt người dùng suy luận từ điểm tối đa hiển thị nơi khác. */
 function fmtTren(v: number | null, max: number): string {
   return v == null ? "—" : `${fmt(v)} / ${max}`;
@@ -121,6 +127,10 @@ export function renderScoreTable(
   // là "sửa", không phải "nháp lần đầu".
   let daTungLuu = phieu.rows.some((r) => diemHienCo(lane, r) != null);
 
+  /** Ô chưa từng lưu mà đang đúng bằng điểm gợi ý (người chấm chưa chỉnh). */
+  const dangGiuGoiY = (r: DongPhieu): boolean =>
+    diemHienCo(lane, r) == null && diemGoiY(lane, r) != null && layGiaTri(r.ma) === diemGoiY(lane, r);
+
   const layGiaTri = (ma: string): number | null => {
     const raw = inputs.get(ma)?.value.trim();
     if (raw === undefined || raw === "") return null;
@@ -141,6 +151,7 @@ export function renderScoreTable(
     return { ...phieu, rows };
   };
 
+  const danhGiaLai: Array<() => void> = [];
   const progress = renderProgress(() => nhayToiTieuChiChuaCham());
   const btnLuu = h("button", { class: "btn-secondary", type: "button" }, "Lưu nháp") as HTMLButtonElement;
   const btnChot = h("button", { class: "btn-primary", type: "button" }, "Chốt & khóa") as HTMLButtonElement;
@@ -181,7 +192,7 @@ export function renderScoreTable(
   const cards = phieu.rows.map((r) => {
     const input = h("input", {
       type: "number", min: "0", max: String(r.diemToiDa), step: "0.5", inputmode: "decimal",
-      value: diemHienCo(lane, r) ?? "",
+      value: diemHienCo(lane, r) ?? diemGoiY(lane, r) ?? "",
     }) as HTMLInputElement;
     input.addEventListener("focus", () => input.select());
 
@@ -209,10 +220,14 @@ export function renderScoreTable(
       warn,
     );
 
-    const datTrangThai = (trangThai: "chua" | "da" | "invalid") => {
-      card.classList.remove("row-chua", "row-da", "row-invalid");
-      statusBadge.classList.remove("chua", "da");
-      if (trangThai === "invalid") {
+    const datTrangThai = (trangThai: "chua" | "da" | "invalid" | "goiy") => {
+      card.classList.remove("row-chua", "row-da", "row-invalid", "row-goiy");
+      statusBadge.classList.remove("chua", "da", "goiy");
+      if (trangThai === "goiy") {
+        card.classList.add("row-goiy");
+        statusBadge.classList.add("goiy");
+        statusBadge.textContent = lane === "hoiDong" ? "Gợi ý từ Tổ" : "Gợi ý từ cá nhân";
+      } else if (trangThai === "invalid") {
         card.classList.add("row-invalid");
         statusBadge.classList.add("chua");
         statusBadge.textContent = "Chưa chấm";
@@ -227,30 +242,28 @@ export function renderScoreTable(
       }
     };
 
-    const kiemTra = () => {
+    const danhGia = () => {
       const raw = input.value.trim();
       warn.textContent = "";
 
       if (raw === "") {
         datTrangThai("chua");
-        capNhatTienDo();
-        setDirty();
-        return;
+      } else {
+        const v = Number(raw);
+        if (!Number.isFinite(v) || v < 0 || v > r.diemToiDa) {
+          datTrangThai("invalid");
+          warn.textContent = `Điểm phải từ 0 đến ${r.diemToiDa}.`;
+        } else {
+          datTrangThai(dangGiuGoiY(r) ? "goiy" : "da");
+        }
       }
-
-      const v = Number(raw);
-      if (!Number.isFinite(v) || v < 0 || v > r.diemToiDa) {
-        datTrangThai("invalid");
-        warn.textContent = `Điểm phải từ 0 đến ${r.diemToiDa}.`;
-        capNhatTienDo();
-        setDirty();
-        return;
-      }
-
-      datTrangThai("da");
       capNhatTienDo();
+    };
+    const kiemTra = () => {
+      danhGia();
       setDirty();
     };
+    danhGiaLai.push(danhGia);
 
     input.addEventListener("input", kiemTra);
     input.addEventListener("focus", () => card.classList.add("row-focused"));
@@ -258,7 +271,7 @@ export function renderScoreTable(
     inputs.set(r.ma, input);
     cardsByMa.set(r.ma, card);
     // Khởi tạo trạng thái ban đầu (không tính là "có thay đổi").
-    if (input.value.trim() !== "") datTrangThai("da");
+    if (input.value.trim() !== "") datTrangThai(dangGiuGoiY(r) ? "goiy" : "da");
 
     return card;
   });
@@ -338,6 +351,7 @@ export function renderScoreTable(
         if (lane === "hoiDong") phieu.nhanXet.hoiDong = p.nhanXet;
         else phieu.nhanXet.to = p.nhanXet;
         onDraftSaved?.(phieu);
+        danhGiaLai.forEach((f) => f());
         // btnChot bị disabled tạm lúc "Đang lưu…" ở trên — tính lại đúng
         // theo tiến độ THẬT, đừng để mắc kẹt ở trạng thái disabled mãi
         // sau khi lưu thành công dù đã nhập đủ.
@@ -404,6 +418,7 @@ export function renderScoreTable(
     const p = payload();
     if (!p) return;
 
+    const nGoiY = phieu.rows.filter((r) => diemGoiY(lane, r) != null && layGiaTri(r.ma) === diemGoiY(lane, r)).length;
     const tong = Math.round(p.diem.reduce((s, d) => s + d.diem, 0) * 100) / 100;
     const nhanDiem = lane === "hoiDong" ? "Điểm Hội đồng" : "Điểm Tổ";
     const modalBody = h("div", {},
@@ -412,6 +427,7 @@ export function renderScoreTable(
         h("p", {}, h("b", {}, "Người được chấm: "), phieu.hoTen),
         h("p", {}, h("b", {}, "Tiêu chí: "), `${p.diem.length} / ${phieu.rows.length}`),
         h("p", {}, h("b", {}, `${nhanDiem}: `), `${tong} / 100`),
+        nGoiY > 0 && h("p", {}, h("b", {}, "Giữ nguyên điểm gợi ý: "), `${nGoiY} / ${phieu.rows.length} tiêu chí (đã chỉnh ${phieu.rows.length - nGoiY})`),
       ),
     );
 
@@ -427,7 +443,14 @@ export function renderScoreTable(
     });
   });
 
+  const nguonGoiY = lane === "hoiDong" ? "điểm Tổ đã chốt" : "điểm cá nhân tự chấm";
+  const ghiChuGoiY = phieu.rows.some(dangGiuGoiY)
+    ? h("p", { class: "muc-note goiy-note" },
+        `Điểm ở các ô đã được điền sẵn theo ${nguonGoiY} (gợi ý). Hãy rà lại và sửa ô nào chưa đồng ý, rồi Lưu hoặc Chốt.`)
+    : null;
+
   wrap.append(...kids(
+    ghiChuGoiY,
     progress.el,
     renderSection("A. TIÊU CHÍ CHUNG", "30 điểm", cards.slice(0, 6)),
     renderSection("B. KPI THEO CHỨC DANH", "70 điểm", chenNhomPhuKpi(cards.slice(6))),
@@ -436,6 +459,9 @@ export function renderScoreTable(
     chotStatus,
     h("div", { class: "actions" }, btnLuu, btnChot, feedback),
   ));
+
+  // Điền sẵn gợi ý → báo sidebar tính điểm tạm ngay khi mở phiếu.
+  if (phieu.rows.some(dangGiuGoiY)) onLive?.(phieuTamTinh());
 
   return { el: wrap, progress, isDirty: () => dirty, luuNhap };
 }

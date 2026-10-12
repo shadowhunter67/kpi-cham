@@ -429,6 +429,7 @@ button {
 }
 .row-card.row-chua { background: #fffcf3; border-left-color: #d69e2e; }
 .row-card.row-da { background: #f7fcf8; border-left-color: #4f9a68; }
+.row-card.row-goiy { background: #f3f8fe; border-left-color: #3b82c4; }
 .row-card.row-invalid { background: var(--danger-bg); border-left-color: var(--danger-ink); }
 
 .row-card.row-focused {
@@ -447,6 +448,8 @@ button {
 }
 .row-status-badge.chua { background: #fff3cd; color: #704600; }
 .row-status-badge.da { background: #e8f5ec; color: #176b38; }
+.row-status-badge.goiy { background: #e3effb; color: #0b4a8a; }
+.goiy-note { background: #e3effb; color: #0b4a8a; border-radius: var(--radius); padding: 10px 14px; }
 .row-noidung { margin: 6px 0 10px; font-size: 1.08rem; line-height: 1.55; color: var(--text-primary); }
 
 /* Dòng điểm ngang: tham khảo (tự chấm/lớp trước) bên trái, ô cần nhập
