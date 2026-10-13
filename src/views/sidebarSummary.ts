@@ -2,6 +2,7 @@ import { h, fmt } from "../dom";
 import { tongHop } from "../scoring";
 import { TRONG_SO } from "../config";
 import { laneCua, diemHienCo } from "./scoreTable";
+import { icon, type IconName } from "./icons";
 import type { PhieuResp } from "../types";
 
 /**
@@ -33,7 +34,7 @@ export function renderSidebarSummary(
       h("p", { class: "sidebar-title" }, "Tổng điểm KPI tạm tính"),
       t.kpiCuoi == null
         ? h("div", { class: "sidebar-score sidebar-score-sub" }, "Chưa đủ dữ liệu")
-        : h("div", { class: "sidebar-score" }, String(t.kpiCuoi), h("span", {}, " / 100")),
+        : donut(String(t.kpiCuoi), t.kpiCuoi, "luc"),
       h("div", { class: "sidebar-rows" },
         row("Cá nhân tự chấm (20%)", `${fmt(t.tuCham)} / 100`),
         row("Tổ chấm (30%)", t.toChua ? "Chưa chấm" : `${fmt(t.toCham)} / 100`),
@@ -54,7 +55,7 @@ export function renderSidebarSummary(
     h("p", { class: "sidebar-title" }, chinh.nhan + (tamTinh ? " (tạm tính)" : "")),
     chinh.chua
       ? h("div", { class: "sidebar-score sidebar-score-sub" }, "Chưa đủ dữ liệu")
-      : h("div", { class: "sidebar-score" }, fmt(chinh.gia), h("span", {}, " / 100")),
+      : donut(fmt(chinh.gia), chinh.gia, "xanh"),
 
     h("div", { class: "sidebar-progress" },
       h("span", { class: "sidebar-sub" }, "Tiến độ"),
@@ -69,9 +70,9 @@ export function renderSidebarSummary(
       // Hiệu trưởng cần thấy CÁCH TÍNH ra điểm tổng — mỗi thành phần kèm
       // hệ số quy đổi + số điểm nó đóng góp thật, không chỉ điểm thô.
       ? h("div", { class: "sidebar-rows sidebar-contrib" },
-        dongGopRow("Cá nhân tự chấm", t.tuCham, TRONG_SO.tu, false),
-        dongGopRow("Tổ chấm", t.toCham, TRONG_SO.to, t.toChua),
-        dongGopRow("Hội đồng chấm", t.hoiDong, TRONG_SO.hoiDong, t.hoiDongChua),
+        dongGopRow("user", "xanh", "Cá nhân tự chấm", t.tuCham, TRONG_SO.tu, false),
+        dongGopRow("users", "tim", "Tổ chấm", t.toCham, TRONG_SO.to, t.toChua),
+        dongGopRow("shield", "luc", "Hội đồng chấm", t.hoiDong, TRONG_SO.hoiDong, t.hoiDongChua),
       )
       : h("div", { class: "sidebar-rows" },
         row("Điểm cá nhân tự chấm", `${fmt(t.tuCham)} / 100`),
@@ -91,17 +92,28 @@ export function renderSidebarSummary(
   );
 }
 
+/** Vòng tròn điểm (conic-gradient thuần CSS): `pct` 0–100 quyết định phần tô, `tone` = "xanh" | "luc". */
+function donut(giaTri: string, pct: number, tone: "xanh" | "luc"): HTMLElement {
+  const p = Math.max(0, Math.min(100, pct));
+  return h("div", { class: `donut donut-${tone}`, style: `--pct:${p}` },
+    h("div", { class: "donut-inner" }, h("b", {}, giaTri), h("span", {}, "/ 100")),
+  );
+}
+
 /** 1 dòng thành phần trong công thức tính điểm tổng: điểm thô + hệ số + số điểm đóng góp thật (điểm thô × hệ số). */
-function dongGopRow(label: string, gia: number, trongSo: number, chua: boolean): HTMLElement {
+function dongGopRow(ic: IconName, tone: string, label: string, gia: number, trongSo: number, chua: boolean): HTMLElement {
   const dongGop = Math.round(gia * trongSo * 100) / 100;
   return h("div", { class: "sidebar-contrib-row" },
-    h("div", { class: "sidebar-contrib-head" },
-      h("span", {}, label),
-      h("b", {}, chua ? "Chưa chấm" : `${fmt(gia)} / 100`),
-    ),
-    h("div", { class: "sidebar-contrib-sub" },
-      h("span", {}, `Đóng góp ${Math.round(trongSo * 100)}%`),
-      h("span", { class: "sidebar-contrib-val" }, chua ? "—" : `+${fmt(dongGop)}`),
+    h("span", { class: `contrib-ico ${tone}` }, icon(ic, 22)),
+    h("div", { class: "contrib-body" },
+      h("div", { class: "sidebar-contrib-head" },
+        h("span", {}, label),
+        h("b", {}, chua ? "Chưa chấm" : `${fmt(gia)} / 100`),
+      ),
+      h("div", { class: "sidebar-contrib-sub" },
+        h("span", {}, `Đóng góp ${Math.round(trongSo * 100)}%`),
+        h("span", { class: "sidebar-contrib-val" }, chua ? "—" : `+${fmt(dongGop)}`),
+      ),
     ),
   );
 }

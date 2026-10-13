@@ -1,4 +1,5 @@
 import { h } from "../dom";
+import { icon, avatar } from "./icons";
 import type { PhieuResp } from "../types";
 
 /**
@@ -11,22 +12,25 @@ export function renderPersonHeader(phieu: PhieuResp): HTMLElement {
   const toDaChot = phieu.trangThai.to === "đã chốt";
   const hdDaChot = phieu.trangThai.hoiDong === "đã chốt";
 
-  const nop = phieu.tuCham.thoiGianNop
-    ? ` · Nộp Form lúc ${phieu.tuCham.thoiGianNop}`
-    : "";
-  const kiemNhiem = phieu.tuCham.nhiemVuKiemNhiem
-    ? ` · Kiêm nhiệm: ${phieu.tuCham.nhiemVuKiemNhiem}`
-    : "";
+  const meta = (ic: Parameters<typeof icon>[0], text: string) =>
+    h("span", { class: "person-meta-item" }, icon(ic, 20), text);
 
   return h("div", { class: "person-header", id: "person-header" },
-    h("h2", {}, phieu.hoTen),
-    h("p", { class: "person-role" }, phieu.chucDanh),
-    h("p", { class: "person-meta" }, `Kỳ đánh giá ${phieu.ky}  ·  ${phieu.to}${nop}${kiemNhiem}`),
-    h("div", { class: "badge-row" },
-      h("span", { class: `badge ${toDaChot ? "badge-ok" : "badge-warn"}` },
-        `Tổ: ${toDaChot ? "Đã chốt" : "Chưa chốt"}`),
-      h("span", { class: `badge ${hdDaChot ? "badge-ok" : "badge-warn"}` },
-        `Hội đồng: ${hdDaChot ? "Đã chốt" : "Chưa chốt"}`),
+    avatar(phieu.hoTen, "avatar-xl"),
+    h("div", { class: "person-body" },
+      h("h2", {}, phieu.hoTen),
+      h("p", { class: "person-role" }, `${phieu.chucDanh} · ${phieu.to}`),
+      h("div", { class: "person-meta" },
+        meta("calendar", `Kỳ đánh giá ${phieu.ky}`),
+        phieu.tuCham.thoiGianNop && meta("clock", `Nộp Form lúc ${phieu.tuCham.thoiGianNop}`),
+        phieu.tuCham.nhiemVuKiemNhiem && meta("briefcase", `Kiêm nhiệm: ${phieu.tuCham.nhiemVuKiemNhiem}`),
+      ),
+      h("div", { class: "badge-row" },
+        h("span", { class: `badge ${toDaChot ? "badge-ok" : "badge-warn"}` },
+          `Tổ: ${toDaChot ? "Đã chốt" : "Chưa chốt"}`),
+        h("span", { class: `badge ${hdDaChot ? "badge-ok" : "badge-warn"}` },
+          `Hội đồng: ${hdDaChot ? "Đã chốt" : "Chưa chốt"}`),
+      ),
     ),
   );
 }

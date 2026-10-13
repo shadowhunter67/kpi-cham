@@ -1,5 +1,5 @@
 import "./styles.css";
-import { CONFIG } from "./config";
+import { CONFIG, TEN_TRUONG } from "./config";
 import { h, mount, openModal } from "./dom";
 import { initAuth, renderSignInButton, clearToken } from "./auth";
 import { api, ApiError } from "./api";
@@ -8,6 +8,7 @@ import { renderScoreTable, laneCua, diemHienCo, type ScoreTableHandle } from "./
 import { renderSidebarSummary } from "./views/sidebarSummary";
 import { tongHop } from "./scoring";
 import { renderPersonHeader } from "./views/personHeader";
+import { icon, avatar, type IconName } from "./views/icons";
 import { trangThaiCuaNguoi, type TrangThaiNguoi } from "./views/nguoiTrangThai";
 import type { KhoiTaoResp, Nguoi, PhieuResp, VaiTro } from "./types";
 
@@ -24,15 +25,27 @@ function moTaVaiTro(v: VaiTro): string {
 }
 
 function screen(...children: (Node | string | false | null | undefined)[]): HTMLElement {
+  return khung(false, ...children);
+}
+
+/** Khung chung sau đăng nhập: dải đầu trang (logo + tên trường), tuỳ chọn nút Đăng xuất ở góc phải. */
+function khung(coDangXuat: boolean, ...children: (Node | string | false | null | undefined)[]): HTMLElement {
   return h("main", { class: "screen" },
     h("header", { class: "app-bar" },
+      logoTile("app-logo"),
       h("div", {},
         h("h1", {}, "Chấm điểm KPI"),
-        h("p", { class: "app-sub" }, "Trường TH&THCS Chu Văn An"),
+        h("p", { class: "app-sub" }, TEN_TRUONG),
+        h("p", { class: "app-sub2" }, "Hệ thống chấm điểm KPI nội bộ"),
       ),
+      coDangXuat && nutDangXuat("btn-ghost btn-logout app-logout"),
     ),
     ...children,
   );
+}
+
+function nutDangXuat(cls: string): HTMLElement {
+  return h("button", { class: cls, type: "button", onclick: () => dieuHuongAnToan(dangXuat) }, icon("logout", 20), "Đăng xuất");
 }
 
 function showConfigError() {
@@ -52,31 +65,55 @@ const LOGO_SVG =
   '<path d="M41 21.5v10" stroke="#0B5EA8" stroke-width="2.4" stroke-linecap="round" fill="none"/>' +
   "</svg>";
 
-/** Trang đăng nhập: bố cục riêng (căn giữa, một thẻ đăng nhập gọn), các màn hình khác vẫn dùng screen(). */
+function logoTile(cls: string): HTMLElement {
+  const el = h("span", { class: cls });
+  el.innerHTML = LOGO_SVG;
+  return el;
+}
+
+/** Trang đăng nhập: hai cột (giới thiệu | thẻ đăng nhập) trên máy tính, xếp dọc trên điện thoại. */
 function showSignIn() {
-  const logo = h("span", { class: "login-logo" });
-  logo.innerHTML = LOGO_SVG;
   const btnBox = h("div", { class: "login-gsi" });
+  const feature = (ic: IconName, tone: string, title: string, desc: string) =>
+    h("li", { class: "login-feature" },
+      h("span", { class: `login-feature-ico ${tone}` }, icon(ic)),
+      h("b", {}, title),
+      h("span", {}, desc),
+    );
 
   mount(h("div", { class: "login-page" },
     h("main", { class: "login-main" },
-      h("header", { class: "login-head" },
-        logo,
-        h("h1", {}, "Chấm điểm KPI"),
-        h("p", { class: "login-school" }, "Trường TH&THCS Chu Văn An"),
-        h("p", { class: "login-place" }, "Xã Ea Drông, tỉnh Đắk Lắk"),
+      h("section", { class: "login-intro" },
+        h("header", { class: "login-head" },
+          logoTile("login-logo"),
+          h("div", {},
+            h("h1", {}, "Chấm điểm KPI"),
+            h("p", { class: "login-school" }, TEN_TRUONG),
+            h("p", { class: "login-place" }, "Xã Ea Drông, tỉnh Đắk Lắk"),
+          ),
+        ),
+        h("hr", { class: "login-rule" }),
+        h("p", { class: "login-lead" },
+          "Hệ thống chấm điểm KPI phục vụ công tác đánh giá, quản lý và phát triển chất lượng giáo dục trong nhà trường."),
+        h("ul", { class: "login-features" },
+          feature("shield", "xanh", "Bảo mật an toàn", "Sử dụng tài khoản Google do nhà trường cấp quyền"),
+          feature("users", "luc", "Dành cho cán bộ", "Chỉ tài khoản được phân quyền mới truy cập"),
+          feature("chart", "tim", "Hỗ trợ công tác quản lý", "Đánh giá KPI minh bạch, hiệu quả, hiện đại"),
+        ),
       ),
       h("section", { class: "login-card", "aria-labelledby": "login-title" },
+        logoTile("login-card-logo"),
         h("h2", { id: "login-title" }, "Đăng nhập hệ thống"),
         h("p", { class: "login-desc" },
           "Sử dụng tài khoản Google đã được nhà trường cấp quyền để truy cập hệ thống chấm điểm KPI."),
         btnBox,
-        h("p", { class: "login-hint" }, "Chỉ tài khoản đã được phân quyền mới có thể truy cập hệ thống."),
-        h("p", { class: "login-support" },
-          "Nếu không đăng nhập được, vui lòng liên hệ quản trị viên nhà trường."),
+        h("p", { class: "login-note" }, icon("lock", 20),
+          h("span", {}, "Chỉ tài khoản đã được phân quyền mới có thể truy cập hệ thống.")),
+        h("p", { class: "login-note login-support" }, icon("help", 20),
+          h("span", {}, "Nếu không đăng nhập được, vui lòng liên hệ quản trị viên nhà trường.")),
       ),
     ),
-    h("footer", { class: "login-foot" }, "Hệ thống chấm điểm KPI nội bộ · Trường TH&THCS Chu Văn An"),
+    h("footer", { class: "login-foot" }, `Hệ thống chấm điểm KPI nội bộ · ${TEN_TRUONG}`),
   ));
   renderSignInButton(btnBox);
 }
@@ -196,7 +233,7 @@ function renderKyBlock() {
   if (!phien) return null;
   const ds = phien.dsKyHoiDong;
   if (!phien.vaiTro.hoiDong || !ds || ds.length <= 1) {
-    return h("div", { class: "ident-ky" }, `Kỳ đánh giá: ${phien.ky}`);
+    return h("div", { class: "ident-ky" }, icon("calendar", 20), `Kỳ đánh giá: ${phien.ky}`);
   }
 
   const select = h("select", { class: "ky-select" },
@@ -204,24 +241,25 @@ function renderKyBlock() {
   ) as HTMLSelectElement;
   select.addEventListener("change", () => void doiKy(select.value));
 
-  return h("div", { class: "ident-ky" }, "Kỳ đánh giá: ", select);
+  return h("div", { class: "ident-ky" }, icon("calendar", 20), "Kỳ đánh giá: ", select);
 }
 
 function renderTongQuan() {
   if (!phien) return;
   mount(screen(
     h("div", { class: "card ident-block" },
+      avatar(phien.email, "avatar-lg"),
       h("div", { class: "ident-info" },
         h("div", { class: "ident-email" }, phien.email),
-        h("div", { class: "ident-role" }, moTaVaiTro(phien.vaiTro)),
+        h("div", { class: "ident-role" }, icon("users", 20), moTaVaiTro(phien.vaiTro)),
         renderKyBlock(),
       ),
-      h("button", { class: "btn-ghost btn-logout", type: "button", onclick: dangXuat }, "Đăng xuất"),
+      nutDangXuat("btn-ghost btn-logout"),
     ),
     phien.nguoiDuocCham.length === 0
       ? h("div", { class: "card muc-note warn" }, "Chưa có ai nộp Form trong kỳ này (hoặc chưa tới kỳ chấm).")
       : h("div", { class: "card" },
-        h("h2", { class: "field-label" }, "Tổng quan chấm KPI"),
+        h("h2", { class: "section-title" }, h("span", { class: "section-ico" }, icon("chart", 22)), "Tổng quan chấm KPI"),
         renderOverview(phien.nguoiDuocCham, (n) => void moPhieuChiTiet(n), phien.ky),
       ),
   ));
@@ -312,28 +350,33 @@ function renderManHinhChiTiet(trang: TrangThaiTaiPhieu) {
   scoreHandle = handle;
 
   const ke = nguoiTiepTheoUuTien();
-  const nav = () => h("div", { class: "detail-nav" },
+  const nutQuayLai = () => h("button", {
+    class: "btn-ghost btn-icon", type: "button",
+    onclick: () => dieuHuongAnToan(() => void quayLaiTongQuan()),
+  }, icon("back", 20), "Quay lại tổng quan");
+  const navTren = () => h("div", { class: "detail-top" },
+    nutQuayLai(),
+    h("h2", { class: "detail-title" }, "Chi tiết đánh giá KPI"),
+  );
+  const navDuoi = () => h("div", { class: "detail-nav" },
+    nutQuayLai(),
     h("button", {
-      class: "btn-ghost", type: "button",
-      onclick: () => dieuHuongAnToan(() => void quayLaiTongQuan()),
-    }, "← Quay lại tổng quan"),
-    h("button", {
-      class: "btn-secondary", type: "button", disabled: !ke,
+      class: "btn-primary btn-icon", type: "button", disabled: !ke,
       onclick: () => { if (ke) dieuHuongAnToan(() => void moPhieuChiTiet(ke)); },
-    }, ke ? "Chấm người tiếp theo →" : "Đã chấm hết mọi người"),
+    }, ke ? "Chấm người tiếp theo" : "Đã chấm hết mọi người", ke && icon("next", 20)),
   );
 
-  mount(screen(
-    nav(),
+  mount(khung(true,
+    navTren(),
     h("div", { class: "kpi-layout" },
-      h("div", { class: "card" },
+      h("div", { class: "card detail-main" },
         personHeader,
         stickyBar,
         handle.el,
       ),
       sidebarWrap,
     ),
-    nav(),
+    navDuoi(),
   ));
 }
 

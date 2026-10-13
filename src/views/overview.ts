@@ -1,5 +1,6 @@
 import { h } from "../dom";
 import { CAC_TRANG_THAI, nhanHanhDong, nhanTrangThai, trangThaiCuaNguoi, trangThaiToCuaNguoi, type TrangThaiNguoi } from "./nguoiTrangThai";
+import { icon, avatar, type IconName } from "./icons";
 import type { Nguoi } from "../types";
 
 /**
@@ -8,6 +9,13 @@ import type { Nguoi } from "../types";
  * sách trạng thái rõ ràng — KHÔNG biểu đồ (không pie/donut). 4 ô trạng
  * thái đếm số lượng, bấm vào để lọc danh sách bên dưới.
  */
+const ICON_TRANG_THAI: Record<TrangThaiNguoi, IconName> = {
+  "chua-bat-dau": "doc",
+  "dang-cham": "clock",
+  "du-chua-chot": "check",
+  "da-chot": "lock",
+};
+
 export function renderOverview(danhSach: Nguoi[], onPick: (n: Nguoi) => void, kyMacDinh?: string): HTMLElement {
   const cacTo = [...new Set(danhSach.map((n) => n.to))].sort();
   const cacCd = [...new Set(danhSach.map((n) => n.chucDanh))].sort();
@@ -24,8 +32,11 @@ export function renderOverview(danhSach: Nguoi[], onPick: (n: Nguoi) => void, ky
   const stats = h("div", { class: "overview-stats" },
     ...CAC_TRANG_THAI.map((t) => {
       const tile = h("button", { type: "button", class: `stat-tile stat-${t}`, "aria-pressed": "false" },
-        h("span", { class: "stat-count" }, String(dem[t])),
-        h("span", { class: "stat-label" }, nhanTrangThai(t)),
+        h("span", { class: "stat-ico" }, icon(ICON_TRANG_THAI[t], 26)),
+        h("span", { class: "stat-text" },
+          h("span", { class: "stat-count" }, String(dem[t])),
+          h("span", { class: "stat-label" }, nhanTrangThai(t)),
+        ),
       ) as HTMLButtonElement;
       tile.addEventListener("click", () => {
         locTrangThai = locTrangThai === t ? null : t;
@@ -74,21 +85,23 @@ export function renderOverview(danhSach: Nguoi[], onPick: (n: Nguoi) => void, ky
       const t = trangThaiCuaNguoi(n);
       const tTo = trangThaiToCuaNguoi(n);
       return h("div", { class: `overview-row overview-${t}` },
+        avatar(n.hoTen),
         h("div", { class: "overview-info" },
           h("span", { class: "nguoi-ten" }, n.hoTen),
-          h("span", { class: "nguoi-chuc-danh" }, coLocPhu ? `${n.chucDanh} · ${n.to}` : n.chucDanh),
-          h("span", { class: "overview-tiendo" }, `Tiến độ: ${n.daCham} / ${n.tongTieuChi} tiêu chí`),
+          h("span", { class: "nguoi-chuc-danh" }, icon("briefcase", 20), coLocPhu ? `${n.chucDanh} · ${n.to}` : n.chucDanh),
+          h("span", { class: "overview-tiendo" }, icon("doc", 20), `Tiến độ: ${n.daCham} / ${n.tongTieuChi} tiêu chí`),
           // Người tồn đọng từ kỳ cũ gộp vào (Tổ được bật "CHO PHÉP CHẤM
           // LẠI" ở mục F) — báo rõ kỳ để khỏi nhầm tưởng đang ở kỳ hiện tại.
           kyMacDinh && n.ky !== kyMacDinh && h("span", { class: "overview-ky-bu" }, `Chấm bù kỳ ${n.ky}`),
           // Chỉ Hội đồng thấy dòng này (n.toDaChot chỉ được backend trả khi
           // đang xem với vai trò Hội đồng) — báo trước Tổ đã xử lý tới đâu,
           // khỏi phải bấm vào mới biết vì sao phiếu đang bị khoá chỉ-xem.
-          tTo && h("span", { class: `overview-to-trangthai ${tTo}` }, `Tổ: ${nhanTrangThai(tTo)}`),
+          tTo && h("span", { class: `overview-to-trangthai ${tTo}` }, icon("users", 18), `Tổ: ${nhanTrangThai(tTo)}`),
         ),
         h("div", { class: "overview-action" },
-          h("span", { class: `nguoi-trang-thai ${t}` }, nhanTrangThai(t)),
-          h("button", { type: "button", class: "btn-primary", onclick: () => onPick(n) }, nhanHanhDong(t)),
+          h("span", { class: `nguoi-trang-thai ${t}` }, icon(ICON_TRANG_THAI[t], 18), nhanTrangThai(t)),
+          h("button", { type: "button", class: "btn-primary btn-icon", onclick: () => onPick(n) },
+            icon(t === "da-chot" ? "chart" : "next", 20), nhanHanhDong(t)),
         ),
       );
     }));
@@ -117,8 +130,10 @@ export function renderOverview(danhSach: Nguoi[], onPick: (n: Nguoi) => void, ky
 
   return h("div", { class: "overview" },
     stats,
-    resetBtn,
-    (filterTo || filterCd) && h("div", { class: "picker-filters" }, filterTo, filterCd),
+    h("div", { class: "overview-toolbar" },
+      resetBtn,
+      (filterTo || filterCd) && h("div", { class: "picker-filters" }, filterTo, filterCd),
+    ),
     list,
   );
 }

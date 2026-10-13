@@ -2,6 +2,7 @@ import { h, fmt, kids, openModal } from "../dom";
 import { api, ApiError } from "../api";
 import { promptReauth } from "../auth";
 import { boNhan } from "./text";
+import { icon, type IconName } from "./icons";
 import { renderProgress, type ProgressController } from "./progress";
 import type { DiemItem, DongPhieu, PhieuResp } from "../types";
 
@@ -22,11 +23,6 @@ export function diemHienCo(lane: Lane, r: DongPhieu): number | null {
 export function diemGoiY(lane: Lane, r: DongPhieu): number | null {
   const v = lane === "hoiDong" ? r.diemTo : lane === "to" ? r.diemTuCham : null;
   return v != null && Number.isFinite(v) && v >= 0 && v <= r.diemToiDa ? v : null;
-}
-
-/** "5 / 5" nếu đã có điểm, "—" nếu chưa — không bắt người dùng suy luận từ điểm tối đa hiển thị nơi khác. */
-function fmtTren(v: number | null, max: number): string {
-  return v == null ? "—" : `${fmt(v)} / ${max}`;
 }
 
 function dinhDangLucLuu(): string {
@@ -80,8 +76,18 @@ export function renderScoreTable(
         ? h("p", { class: "muc-note warn" }, "Chờ Tổ bấm “Chốt & khóa” phiếu này rồi Hội đồng mới chấm được.")
         : h("p", { class: "muc-note warn" }, `Phiếu ${lane === "hoiDong" ? "Hội đồng" : "Tổ"} đã chốt.`);
 
+    const tongTc = phieu.rows.length;
+    const daTc = phieu.rows.filter((r) => diemHienCo(lane, r) != null).length;
+    const pctTc = tongTc > 0 ? Math.round((daTc / tongTc) * 100) : 0;
+    const strip = lane == null ? null : h("div", { class: "progress-strip" },
+      h("span", {}, `${daTc} / ${tongTc} tiêu chí`),
+      h("div", { class: "progress-track" }, h("div", { class: `progress-fill${daTc >= tongTc ? " full" : ""}`, style: `width:${pctTc}%` })),
+      h("b", {}, `${pctTc}%`),
+    );
+
     wrap.append(...kids(
       note,
+      strip,
       renderSection("A. TIÊU CHÍ CHUNG", "30 điểm", cards.slice(0, 6)),
       renderSection("B. KPI THEO CHỨC DANH", "70 điểm", chenNhomPhuKpi(cards.slice(6))),
       phieu.nhanXet.to && h("div", { class: "readonly-block" }, h("b", {}, "Nhận xét Tổ: "), phieu.nhanXet.to),
@@ -152,6 +158,13 @@ export function renderScoreTable(
   };
 
   const danhGiaLai: Array<() => void> = [];
+  const nguonGoiY = lane === "hoiDong" ? "điểm Tổ đã chốt" : "điểm cá nhân tự chấm";
+  const cauGoiY = h("span", { class: "goiy-cau" },
+    ` Các ô đã được điền sẵn theo ${nguonGoiY} (gợi ý) — hãy rà lại và sửa ô nào chưa đồng ý.`);
+  const huongDan = h("p", { class: "muc-note huong-dan" }, icon("help", 22),
+    h("span", {},
+      `Bạn đang chấm điểm ở vai trò ${lane === "hoiDong" ? "Hội đồng" : "Tổ"}. Vui lòng nhập điểm cho từng tiêu chí và bấm “Chốt & khóa” khi hoàn tất.`,
+      cauGoiY));
   const progress = renderProgress(() => nhayToiTieuChiChuaCham());
   const btnLuu = h("button", { class: "btn-secondary", type: "button" }, "Lưu nháp") as HTMLButtonElement;
   const btnChot = h("button", { class: "btn-primary", type: "button" }, "Chốt & khóa") as HTMLButtonElement;
@@ -166,6 +179,8 @@ export function renderScoreTable(
     const total = phieu.rows.length;
     progress.update(done, total);
     onProgress?.(done, total);
+
+    cauGoiY.style.display = phieu.rows.some(dangGiuGoiY) ? "" : "none";
 
     const duDieuKienChot = done >= total;
     btnChot.disabled = !duDieuKienChot;
@@ -187,7 +202,7 @@ export function renderScoreTable(
     input?.focus();
   }
 
-  const nhanCham = lane === "hoiDong" ? "Điểm Hội đồng chấm" : "Điểm Tổ chấm";
+  const nhanCham = lane === "hoiDong" ? "Hội đồng chấm" : "Tổ chấm";
 
   const cards = phieu.rows.map((r) => {
     const input = h("input", {
@@ -208,13 +223,15 @@ export function renderScoreTable(
         ),
       ),
       h("div", { class: "row-noidung" }, boNhan(r.ma, r.noiDung)),
-      h("div", { class: "row-scores-line" },
-        h("span", { class: "row-tu-cham" }, "Điểm cá nhân tự chấm: ", h("b", {}, fmtTren(r.diemTuCham, r.diemToiDa))),
-        lane === "hoiDong" && h("span", { class: "row-tu-cham" }, "Tổ đã chấm: ", h("b", {}, fmtTren(r.diemTo, r.diemToiDa))),
-        h("span", { class: "row-cham-chinh" },
-          h("span", { class: "row-cham-label" }, `${nhanCham}:`),
-          input,
-          h("span", { class: "row-max-inline" }, `/ ${r.diemToiDa}`),
+      h("div", { class: `row-scores-line row-scores-boxes scores-n${lane === "hoiDong" ? 3 : 2}` },
+        soBox("user", "Cá nhân tự chấm", "Cá nhân", r.diemTuCham, r.diemToiDa, false),
+        lane === "hoiDong" && soBox("users", "Tổ chấm", "Tổ", r.diemTo, r.diemToiDa, false),
+        h("div", { class: "score-box nhap" },
+          h("div", { class: "score-box-label row-cham-label" }, icon(lane === "hoiDong" ? "shield" : "users", 20), nhanCham),
+          h("div", { class: "row-cham-nhap" },
+            input,
+            h("span", { class: "row-max-inline" }, `/ ${r.diemToiDa}`),
+          ),
         ),
       ),
       warn,
@@ -443,21 +460,17 @@ export function renderScoreTable(
     });
   });
 
-  const nguonGoiY = lane === "hoiDong" ? "điểm Tổ đã chốt" : "điểm cá nhân tự chấm";
-  const ghiChuGoiY = phieu.rows.some(dangGiuGoiY)
-    ? h("p", { class: "muc-note goiy-note" },
-        `Điểm ở các ô đã được điền sẵn theo ${nguonGoiY} (gợi ý). Hãy rà lại và sửa ô nào chưa đồng ý, rồi Lưu hoặc Chốt.`)
-    : null;
-
   wrap.append(...kids(
-    ghiChuGoiY,
+    huongDan,
     progress.el,
     renderSection("A. TIÊU CHÍ CHUNG", "30 điểm", cards.slice(0, 6)),
     renderSection("B. KPI THEO CHỨC DANH", "70 điểm", chenNhomPhuKpi(cards.slice(6))),
     nxCuaTo,
     h("label", { class: "nx-field" }, h("span", {}, nxLabel), nxInput),
-    chotStatus,
-    h("div", { class: "actions" }, btnLuu, btnChot, feedback),
+    h("div", { class: "action-bar" },
+      chotStatus,
+      h("div", { class: "actions" }, btnLuu, btnChot, feedback),
+    ),
   ));
 
   // Điền sẵn gợi ý → báo sidebar tính điểm tạm ngay khi mở phiếu.
@@ -468,7 +481,8 @@ export function renderScoreTable(
 
 function renderSection(title: string, diem: string, cards: HTMLElement[]): HTMLElement {
   return h("div", { class: "criteria-section" },
-    h("div", { class: "criteria-section-head" }, h("h3", {}, title), h("span", {}, diem)),
+    h("div", { class: "criteria-section-head" },
+      h("h3", {}, h("span", { class: "section-ico" }, icon("list", 22)), title), h("span", {}, diem)),
     h("div", { class: "rows-grid" }, ...cards),
   );
 }
@@ -490,12 +504,20 @@ function chenNhomPhuKpi(cardsB: HTMLElement[]): HTMLElement[] {
   ];
 }
 
+/** Ô điểm một lớp: nhãn nhỏ phía trên, số lớn phía dưới ("5 / 5" hoặc "—" nếu chưa có). */
+function soBox(ic: IconName, nhan: string, ngan: string, v: number | null, max: number, laLopMinh: boolean): HTMLElement {
+  return h("div", { class: `score-box${laLopMinh ? " minh" : ""}` },
+    h("div", { class: "score-box-label" }, icon(ic, 20),
+      h("span", { class: "lb-dai" }, nhan), h("span", { class: "lb-ngan" }, ngan)),
+    h("div", { class: "score-box-val" },
+      v == null ? "—" : fmt(v),
+      v == null ? null : h("span", {}, ` / ${max}`)),
+  );
+}
+
 function buildReadonlyCard(lane: Lane, r: DongPhieu): HTMLElement {
   const gia = diemHienCo(lane, r);
   const daCham = gia != null;
-  // Badge chỉ nói "đã nhập hay chưa" — dòng riêng này in RÕ số điểm của
-  // đúng lớp đang xem, không bắt người dùng suy luận từ badge.
-  const nhanLane = lane === "hoiDong" ? "Điểm Hội đồng chấm" : lane === "to" ? "Điểm Tổ chấm" : null;
 
   return h("div", { class: `row-card ${daCham ? "row-da" : "row-chua"}` },
     h("div", { class: "row-head" },
@@ -506,12 +528,11 @@ function buildReadonlyCard(lane: Lane, r: DongPhieu): HTMLElement {
       ),
     ),
     h("div", { class: "row-noidung" }, boNhan(r.ma, r.noiDung)),
-    h("div", { class: "row-scores-line" },
-      nhanLane && h("span", { class: "row-tu-cham" }, `${nhanLane}: `, h("b", {}, fmtTren(gia, r.diemToiDa))),
-      h("span", { class: "row-tu-cham" }, "Điểm cá nhân tự chấm: ", h("b", {}, fmtTren(r.diemTuCham, r.diemToiDa))),
-      (lane === "hoiDong" || lane == null) &&
-        h("span", { class: "row-tu-cham" }, "Tổ: ", h("b", {}, fmtTren(r.diemTo, r.diemToiDa))),
-      lane == null && h("span", { class: "row-tu-cham" }, "Hội đồng: ", h("b", {}, fmtTren(r.diemHoiDong, r.diemToiDa))),
+    h("div", { class: `row-scores-line row-scores-boxes scores-n${lane === "to" ? 2 : 3}` },
+      // Thứ tự cố định Cá nhân → Tổ → Hội đồng; chỉ hiện những lớp mà vai trò này vốn đã được xem.
+      soBox("user", "Cá nhân tự chấm", "Cá nhân", r.diemTuCham, r.diemToiDa, false),
+      soBox("users", "Tổ chấm", "Tổ", r.diemTo, r.diemToiDa, lane === "to"),
+      (lane === "hoiDong" || lane == null) && soBox("shield", "Hội đồng chấm", "Hội đồng", r.diemHoiDong, r.diemToiDa, lane === "hoiDong"),
     ),
   );
 }
